@@ -6,7 +6,7 @@ More details are found on the [wiki](https://github.com/Syroot/NintenTools.Bfres
 
 ## Supported Features
 
-- Load all subfiles and their sections of a BFRES file (at least version 3.x or newer).
+- Load all subfiles and their sections of a BFRES file (Wii U versions 3.x).
 - Helper classes simplify modifying data sections, like `VertexBufferHelper` allowing strongly-typed access to edit `VertexBuffer` data.
 - Save new or modified BFRES files written from scratch.
 - Quickly run scripts on BFRES files able to access the whole API with the ResScript tool.
@@ -19,6 +19,7 @@ The following features are **not yet implemented**, but planned:
 The following features are **not planned**:
 - Accessing raw header data (like file offsets). Since this can be useful for injection tools, it might be implemented on demand (please submit a feature request).
 - Deswizzling texture data.
+- Implementing the Switch BFRES format due to substantial changes in it, another library may target this in the future.
 
 ## NuGet Package
 
