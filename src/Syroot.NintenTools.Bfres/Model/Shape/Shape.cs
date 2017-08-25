@@ -171,8 +171,8 @@ namespace Syroot.NintenTools.Bfres
         HasVertexBuffer = 1 << 1,
 
         /// <summary>
-        /// Set in some BotW models.
+        /// The boundings in all submeshes are consistent.
         /// </summary>
-        Unknown2 = 1 << 2
+        SubMeshBoundaryConsistent = 1 << 2
     }
 }
