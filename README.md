@@ -24,3 +24,7 @@ The following features are **not planned**:
 ## NuGet Package
 
 It is not required to download the library in source and compile it yourself, as a typically up-to-date [NuGet package](https://www.nuget.org/packages/Syroot.NintenTools.Bfres) exists.
+
+## Support
+
+You can ask questions and suggest features on Discord aswell. Feel free to [join the NintenTools channel on the Syroot server](https://discord.gg/asB4uaf)!
