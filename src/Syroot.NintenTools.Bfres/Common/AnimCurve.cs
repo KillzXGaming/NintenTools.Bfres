@@ -155,7 +155,10 @@ namespace Syroot.NintenTools.Bfres
                     case AnimCurveKeyType.Single:
                         for (int i = 0; i < numKey; i++)
                         {
-                            keys[i, 0] = loader.ReadSingle();
+                            for (int j = 0; j < elementsPerKey; j++)
+                            {
+                                keys[i, j] = loader.ReadSingle();
+                            }
                         }
                         break;
                     case AnimCurveKeyType.Int16:
