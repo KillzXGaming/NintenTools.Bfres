@@ -1,36 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
-		<Description>Scripting interface for the NintenTools.Bfres library.</Description>
-		<Copyright>(c) Syroot, licensed under MIT</Copyright>
+		<ApplicationIcon>Properties\Logo.ico</ApplicationIcon>
 		<AssemblyName>ResScript</AssemblyName>
 		<AssemblyTitle>NintenTools.Bfres.Scripter</AssemblyTitle>
 		<Authors>Syroot</Authors>
-		<VersionPrefix>1.2.2</VersionPrefix>
-
+		<Copyright>(c) Syroot, licensed under MIT</Copyright>
+		<Description>Scripting interface for the NintenTools.Bfres library.</Description>
+		<OutputType>Exe</OutputType>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/Syroot/NintenTools.Bfres</RepositoryUrl>
-
 		<TargetFrameworks>net46</TargetFrameworks>
-		<OutputType>Exe</OutputType>
-		<ApplicationIcon>Properties\Logo.ico</ApplicationIcon>
+		<VersionPrefix>1.2.3</VersionPrefix>
 	</PropertyGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\Syroot.NintenTools.Bfres\Syroot.NintenTools.Bfres.csproj" />
+		<PackageReference Include="Costura.Fody" Version="1.6.2" />
+		<PackageReference Include="Fody" Version="2.1.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.2.0" />
+		<PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
+		<PackageReference Include="Syroot.Maths" Version="1.5.0" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Include="Fody" Version="2.1.0" />
-	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.2.0" />
-	  <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
-	  <PackageReference Include="Syroot.Maths" Version="1.5.0" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'net46'">
-	  <PackageReference Include="Costura.Fody">
-	    <Version>1.6.2</Version>
-	  </PackageReference>
-	</ItemGroup>
-
 </Project>
