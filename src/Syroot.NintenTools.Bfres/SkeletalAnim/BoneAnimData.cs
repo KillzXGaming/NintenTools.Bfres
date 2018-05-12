@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Syroot.Maths;
 using Syroot.NintenTools.Bfres.Core;
 
@@ -40,16 +40,16 @@ namespace Syroot.NintenTools.Bfres
         {
             Flags = 0; // Never in files.
             Scale = flags.HasFlag(BoneAnimFlagsBase.Scale) ? loader.ReadVector3F() : Vector3F.Zero;
-            Translate = flags.HasFlag(BoneAnimFlagsBase.Translate) ? loader.ReadVector3F() : Vector3F.Zero;
-            Padding = 0; // Never in files.
             Rotate = flags.HasFlag(BoneAnimFlagsBase.Rotate) ? loader.ReadVector4F() : Vector4F.Zero;
+            Padding = 0; // Never in files.
+            Translate = flags.HasFlag(BoneAnimFlagsBase.Translate) ? loader.ReadVector3F() : Vector3F.Zero;
         }
 
         internal void Save(ResFileSaver saver, BoneAnimFlagsBase flags)
         {
             if (flags.HasFlag(BoneAnimFlagsBase.Scale)) saver.Write(Scale);
-            if (flags.HasFlag(BoneAnimFlagsBase.Translate)) saver.Write(Translate);
             if (flags.HasFlag(BoneAnimFlagsBase.Rotate)) saver.Write(Rotate);
+            if (flags.HasFlag(BoneAnimFlagsBase.Translate)) saver.Write(Translate);
         }
     }
 
