@@ -73,7 +73,7 @@ namespace Syroot.NintenTools.Bfres.Core
         internal T Load<T>()
             where T : IResData, new()
         {
-            uint offset = ReadOffset();
+            long offset = ReadOffset();
             if (offset == 0) return default(T);
 
             // Seek to the instance data and load it.
@@ -93,7 +93,7 @@ namespace Syroot.NintenTools.Bfres.Core
         /// <returns>The data instance or <c>null</c>.</returns>
         /// <remarks>Offset required for ExtFile header (offset specified before size).</remarks>
         [DebuggerStepThrough]
-        internal T LoadCustom<T>(Func<T> callback, uint? offset = null)
+        internal T LoadCustom<T>(Func<T> callback, long? offset = null)
         {
             offset = offset ?? ReadOffset();
             if (offset == 0) return default(T);
@@ -136,7 +136,7 @@ namespace Syroot.NintenTools.Bfres.Core
         /// <returns>The <see cref="IList{T}"/> instance or <c>null</c>.</returns>
         /// <remarks>Offset required for FMDL FVTX lists (offset specified before count).</remarks>
         [DebuggerStepThrough]
-        internal IList<T> LoadList<T>(int count, uint? offset = null)
+        internal IList<T> LoadList<T>(int count, long? offset = null)
             where T : IResData, new()
         {
             List<T> list = new List<T>(count);
@@ -163,7 +163,7 @@ namespace Syroot.NintenTools.Bfres.Core
         [DebuggerStepThrough]
         internal string LoadString(Encoding encoding = null)
         {
-            uint offset = ReadOffset();
+            long offset = ReadOffset();
             if (offset == 0) return null;
 
             encoding = encoding ?? Encoding;
@@ -183,7 +183,7 @@ namespace Syroot.NintenTools.Bfres.Core
         [DebuggerStepThrough]
         internal IList<string> LoadStrings(int count, Encoding encoding = null)
         {
-            uint[] offsets = ReadOffsets(count);
+            long[] offsets = ReadOffsets(count);
 
             encoding = encoding ?? Encoding;
             string[] names = new string[offsets.Length];
@@ -191,7 +191,7 @@ namespace Syroot.NintenTools.Bfres.Core
             {
                 for (int i = 0; i < offsets.Length; i++)
                 {
-                    uint offset = offsets[i];
+                    long offset = offsets[i];
                     if (offset == 0) continue;
 
                     Position = offset;
@@ -220,9 +220,9 @@ namespace Syroot.NintenTools.Bfres.Core
         /// Reads a BFRES offset which is the absolute address.
         /// </summary>
         /// <returns>The absolute address of the offset.</returns>
-        internal uint ReadOffset()
+        internal long ReadOffset()
         {
-            uint offset = ReadUInt32();
+            long offset = ReadInt64();
             return offset == 0 ? 0 : offset;
         }
 
@@ -231,9 +231,9 @@ namespace Syroot.NintenTools.Bfres.Core
         /// </summary>
         /// <param name="count">The number of offsets to read.</param>
         /// <returns>The absolute addresses of the offsets.</returns>
-        internal uint[] ReadOffsets(int count)
+        internal long[] ReadOffsets(int count)
         {
-            uint[] values = new uint[count];
+            long[] values = new long[count];
             for (int i = 0; i < count; i++)
             {
                 values[i] = ReadOffset();
