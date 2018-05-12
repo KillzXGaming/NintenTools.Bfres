@@ -4,22 +4,25 @@ This .NET library provides easy access to data stored in the BFRES Nintendo grap
 
 More details are found on the [wiki](https://github.com/Syroot/NintenTools.Bfres/wiki).
 
-## Supported Features
+This branch aims to support Nintendo Switch BFRES files. 
 
-- Load all subfiles and their sections of a BFRES file (Wii U versions 3.x).
-- Helper classes simplify modifying data sections, like `VertexBufferHelper` allowing strongly-typed access to edit `VertexBuffer` data.
-- Save new or modified BFRES files written from scratch.
-- Quickly run scripts on BFRES files able to access the whole API with the ResScript tool.
-- Parse BFRES files visually in [010 Editor](https://www.sweetscape.com/010editor/) with the provided [binary templates](https://github.com/Syroot/NintenTools.Bfres/tree/master/other/010_editor).
-
-The following features are **not yet implemented**, but planned:
-- Simplified modification of `AnimCurve` instances and better handling of key data.
-- Classes mapping typical `ExternalFile` contents (like BFSHA shader data), manually loadable on demand.
-
-The following features are **not planned**:
-- Accessing raw header data (like file offsets). Since this can be useful for injection tools, it might be implemented on demand (please submit a feature request).
-- Deswizzling texture data.
-- Implementing the Switch BFRES format due to substantial changes in it, another library may target this in the future.
+| Section | Status |
+| --- | --- |
+| ResFile | 0% complete |
+| Model | 0% complete |
+| - Skeleton | 0% complete |
+| - Shape | 0% complete |
+| - Vertex | 0% complete |
+| - Material | 0% complete |
+| Material Animation | 0% complete |
+| Skeleton Animation | 0% complete |
+| Visual Animation | 0% complete |
+| Shape Animation | 0% complete |
+| Scene Animation | 0% complete |
+| Embedded File | 0% complete |
+| Relocation Table | 0% complete |
+| Memory Pool | 0% complete |
+| String Table | 0% complete |
 
 ## NuGet Package
 
