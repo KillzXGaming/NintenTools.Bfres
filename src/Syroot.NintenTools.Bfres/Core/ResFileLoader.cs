@@ -114,7 +114,8 @@ namespace Syroot.NintenTools.Bfres.Core
         internal ResDict<T> LoadDict<T>()
             where T : IResData, new()
         {
-            uint offset = ReadOffset();
+            long offset = ReadOffset();
+            long DataOffset = ReadOffset();
             if (offset == 0) return new ResDict<T>();
 
             using (TemporarySeek(offset, SeekOrigin.Begin))
@@ -168,6 +169,7 @@ namespace Syroot.NintenTools.Bfres.Core
             encoding = encoding ?? Encoding;
             using (TemporarySeek(offset, SeekOrigin.Begin))
             {
+                short size = ReadInt16();
                 return ReadString(BinaryStringFormat.ZeroTerminated, encoding);
             }
         }
@@ -215,17 +217,17 @@ namespace Syroot.NintenTools.Bfres.Core
         }
 
         /// <summary>
-        /// Reads a BFRES offset which is relative to itself, and returns the absolute address.
+        /// Reads a BFRES offset which is the absolute address.
         /// </summary>
         /// <returns>The absolute address of the offset.</returns>
         internal uint ReadOffset()
         {
             uint offset = ReadUInt32();
-            return offset == 0 ? 0 : (uint)Position - sizeof(uint) + offset;
+            return offset == 0 ? 0 : offset;
         }
 
         /// <summary>
-        /// Reads BFRES offsets which are relative to themselves, and returns the absolute addresses.
+        /// Reads BFRES offsets which is the absolute addresses.
         /// </summary>
         /// <param name="count">The number of offsets to read.</param>
         /// <returns>The absolute addresses of the offsets.</returns>

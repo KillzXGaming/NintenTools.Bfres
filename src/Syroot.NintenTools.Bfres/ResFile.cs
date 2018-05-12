@@ -63,15 +63,38 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         public ByteOrder ByteOrder { get; private set; }
 
+       
+
         /// <summary>
         /// Gets or sets the alignment to use for raw data blocks in the file.
         /// </summary>
         public uint Alignment { get; set; }
 
         /// <summary>
+        /// Gets or sets the target adress size to use for raw data blocks in the file.
+        /// </summary>
+        public uint TargetAddressSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the flag. Unknown purpose.
+        /// </summary>
+        public uint Flag { get; set; }
+
+        /// <summary>
+        /// Gets or sets the BlockOffset. 
+        /// </summary>
+        public uint BlockOffset { get; set; }
+
+        /// <summary>
         /// Gets or sets a name describing the contents.
         /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets the stored <see cref="RelocationTable"/> (_RLT) instance.
+        /// </summary>
+        public RelocationTable RelocationTable { get; set; }
+
 
         /// <summary>
         /// Gets or sets the stored <see cref="Model"/> (FMDL) instances.
@@ -98,6 +121,12 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         public ResDict<ShaderParamAnim> ColorAnims { get; set; }
 
+        /// <summary>
+        /// Gets or sets the stored <see cref="MaterialAnim"/> (FSHU) instances for color animations.
+        /// </summary>
+        public ResDict<MaterialAnim> MaterialAnim { get; set; }
+
+        
         /// <summary>
         /// Gets or sets the stored <see cref="ShaderParamAnim"/> (FSHU) instances for texture SRT animations.
         /// </summary>
@@ -127,6 +156,17 @@ namespace Syroot.NintenTools.Bfres
         /// Gets or sets the stored <see cref="SceneAnim"/> (FSCN) instances.
         /// </summary>
         public ResDict<SceneAnim> SceneAnims { get; set; }
+
+        /// <summary>
+        /// Gets or sets the stored <see cref="BufferMemoryPool"/> instances. 
+        /// </summary>
+        public BufferMemoryPool BufferMemoryPool { get; set; }
+
+        /// <summary>
+        /// Gets or sets the stored <see cref="BufferMemoryPoolInfo"/> instances.
+        /// </summary>
+        public BufferMemoryPoolInfo BufferMemoryPoolInfo { get; set; }
+
 
         /// <summary>
         /// Gets or sets attached <see cref="ExternalFile"/> instances. The key of the dictionary typically represents
@@ -165,40 +205,41 @@ namespace Syroot.NintenTools.Bfres
 
         void IResData.Load(ResFileLoader loader)
         {
+            ByteOrder = ByteOrder.LittleEndian;
+
             loader.CheckSignature(_signature);
+            uint padding = loader.ReadUInt32();
             Version = loader.ReadUInt32();
             ByteOrder = loader.ReadEnum<ByteOrder>(true);
-            ushort sizHeader = loader.ReadUInt16();
+            Alignment = loader.ReadByte();
+            TargetAddressSize = loader.ReadByte();
+            uint OffsetToFileName = loader.ReadUInt32();
+            Flag = loader.ReadUInt16();
+            BlockOffset = loader.ReadUInt16();
+            RelocationTable = loader.Load<RelocationTable>();
             uint sizFile = loader.ReadUInt32();
-            Alignment = loader.ReadUInt32();
             Name = loader.LoadString();
-            uint sizStringPool = loader.ReadUInt32();
-            uint ofsStringPool = loader.ReadOffset();
             Models = loader.LoadDict<Model>();
             Textures = loader.LoadDict<Texture>();
             SkeletalAnims = loader.LoadDict<SkeletalAnim>();
-            ShaderParamAnims = loader.LoadDict<ShaderParamAnim>();
-            ColorAnims = loader.LoadDict<ShaderParamAnim>();
-            TexSrtAnims = loader.LoadDict<ShaderParamAnim>();
-            TexPatternAnims = loader.LoadDict<TexPatternAnim>();
+            MaterialAnim = loader.LoadDict<MaterialAnim>();
             BoneVisibilityAnims = loader.LoadDict<VisibilityAnim>();
-            MatVisibilityAnims = loader.LoadDict<VisibilityAnim>();
             ShapeAnims = loader.LoadDict<ShapeAnim>();
             SceneAnims = loader.LoadDict<SceneAnim>();
+            BufferMemoryPool = loader.Load<BufferMemoryPool>();
+            BufferMemoryPoolInfo = loader.Load<BufferMemoryPoolInfo>();
             ExternalFiles = loader.LoadDict<ExternalFile>();
+            uint sizStringPool = loader.ReadUInt32();
+            uint ofsStringPool = loader.ReadOffset();
             ushort numModel = loader.ReadUInt16();
-            ushort numTexture = loader.ReadUInt16();
             ushort numSkeletalAnim = loader.ReadUInt16();
-            ushort numShaderParamAnim = loader.ReadUInt16();
-            ushort numColorAnim = loader.ReadUInt16();
-            ushort numTexSrtAnim = loader.ReadUInt16();
-            ushort numTexPatternAnim = loader.ReadUInt16();
+            ushort numMaterialAnim = loader.ReadUInt16();
             ushort numBoneVisibilityAnim = loader.ReadUInt16();
-            ushort numMatVisibilityAnim = loader.ReadUInt16();
             ushort numShapeAnim = loader.ReadUInt16();
             ushort numSceneAnim = loader.ReadUInt16();
             ushort numExternalFile = loader.ReadUInt16();
-            uint userPointer = loader.ReadUInt32();
+            uint padding2 = loader.ReadUInt32();
+            uint padding3 = loader.ReadUInt16();
         }
         
         void IResData.Save(ResFileSaver saver)
@@ -206,38 +247,37 @@ namespace Syroot.NintenTools.Bfres
             PreSave(); 
             
             saver.WriteSignature(_signature);
+            saver.Write("    ");
             saver.Write(Version);
             saver.Write(ByteOrder, true);
-            saver.Write((ushort)0x0010); // SizHeader
-            saver.SaveFieldFileSize();
             saver.Write(Alignment);
+            saver.Write(TargetAddressSize);
+            saver.Write(0); //Zero terminated filename
+            saver.Write(Flag);
+            saver.Write(BlockOffset);
+            saver.Save(RelocationTable);
+            saver.SaveFieldFileSize();
             saver.SaveString(Name);
-            saver.SaveFieldStringPool();
             saver.SaveDict(Models);
-            saver.SaveDict(Textures);
             saver.SaveDict(SkeletalAnims);
-            saver.SaveDict(ShaderParamAnims);
-            saver.SaveDict(ColorAnims);
-            saver.SaveDict(TexSrtAnims);
-            saver.SaveDict(TexPatternAnims);
+            saver.SaveDict(MaterialAnim);
             saver.SaveDict(BoneVisibilityAnims);
-            saver.SaveDict(MatVisibilityAnims);
             saver.SaveDict(ShapeAnims);
             saver.SaveDict(SceneAnims);
+            saver.Save(BufferMemoryPool);
+            saver.Save(BufferMemoryPoolInfo);
             saver.SaveDict(ExternalFiles);
+            saver.SaveFieldStringPool();
             saver.Write((ushort)Models.Count);
-            saver.Write((ushort)Textures.Count);
             saver.Write((ushort)SkeletalAnims.Count);
-            saver.Write((ushort)ShaderParamAnims.Count);
-            saver.Write((ushort)ColorAnims.Count);
-            saver.Write((ushort)TexSrtAnims.Count);
-            saver.Write((ushort)TexPatternAnims.Count);
+            saver.Write((ushort)MaterialAnim.Count);
             saver.Write((ushort)BoneVisibilityAnims.Count);
             saver.Write((ushort)MatVisibilityAnims.Count);
             saver.Write((ushort)ShapeAnims.Count);
             saver.Write((ushort)SceneAnims.Count);
             saver.Write((ushort)ExternalFiles.Count);
-            saver.Write(0); // UserPointer
+            saver.Write((uint)0);
+            saver.Write((ushort)0);
         }
 
         // ---- METHODS (PRIVATE) --------------------------------------------------------------------------------------

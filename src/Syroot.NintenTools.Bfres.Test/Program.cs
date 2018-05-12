@@ -42,118 +42,6 @@ namespace Syroot.NintenTools.Bfres.Test
             Console.ReadLine();
         }
         
-        private static Dictionary<GX2SurfaceFormat, List<string>> _textures = new Dictionary<GX2SurfaceFormat, List<string>>();
-
-        private static void LogSurfaceFormats(string fileName, ResFile resFile)
-        {
-            foreach (Texture texture in resFile.Textures.Values)
-            {
-                Console.WriteLine(texture.Format);
-                string textureName = fileName + " " + texture.Name;
-                if (_textures.TryGetValue(texture.Format, out List<string> list))
-                {
-                    list.Add(textureName);
-                }
-                else
-                {
-                    _textures[texture.Format] = new List<string>() { textureName };
-                }
-            }
-        }
-
-        private static void ComputeIndices(ResFile resFile)
-        {
-            foreach (Model model in resFile.Models.Values)
-            {
-                foreach (Shape shape in model.Shapes.Values)
-                {
-                    foreach (Mesh mesh in shape.Meshes)
-                    {
-                        uint[] indices = mesh.GetIndices().ToArray();
-                        mesh.SetIndices(indices);
-
-                        uint[] newIndices = mesh.GetIndices().ToArray();
-                        for (int i = 0; i < indices.Length; i++)
-                        {
-                            if (indices[i] != newIndices[i])
-                            {
-                                Console.WriteLine($"Failure {mesh.IndexFormat}");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        private static void DumpAttributeBufferIndexInfo(ResFile resFile)
-        {
-            foreach (Model model in resFile.Models.Values)
-            {
-                int i = 0;
-                foreach (VertexBuffer vertexBuffer in model.VertexBuffers)
-                {
-                    _log.WriteLine($"\tVertexBuffer {i} ({vertexBuffer.Buffers.Sum((x) => x.Data[0].Length)} bytes)");
-                    foreach (VertexAttrib attrib in vertexBuffer.Attributes.Values)
-                    {
-                        _log.WriteLine($"\t\t{attrib.Name} {attrib.Format} = Buffer {attrib.BufferIndex}");
-                    }
-                    i++;
-                }
-            }
-        }
-
-        private static void DumpVertexCountInfo(ResFile resFile)
-        {
-            foreach (Model model in resFile.Models.Values)
-            {
-                int totalElementCount = 0;
-                foreach (VertexBuffer vertexBuffer in model.VertexBuffers)
-                {
-                    Buffer firstBuffer = vertexBuffer.Buffers[0];
-                    int elementCount = firstBuffer.Data[0].Length / firstBuffer.Stride;
-                    Console.WriteLine(String.Format("\tVertexBuffer {0} {1} {2}",
-                        vertexBuffer.VertexCount,
-                        vertexBuffer.VertexCount == elementCount ? "==" : "!=",
-                        elementCount));
-                    totalElementCount += elementCount;
-                }
-                Console.WriteLine(String.Format("\tModel {0} {1} {2}",
-                    model.TotalVertexCount,
-                    model.TotalVertexCount == totalElementCount ? "==" : "!=",
-                    totalElementCount));
-            }
-        }
-
-        private static void FindVertexAttribFormat(ResFile resFile)
-        {
-            foreach (Model model in resFile.Models.Values)
-            {
-                foreach (VertexBuffer vertexBuffer in model.VertexBuffers)
-                {
-                    foreach (VertexAttrib attrib in vertexBuffer.Attributes.Values)
-                    {
-                        switch (attrib.Format)
-                        {
-                            case GX2AttribFormat.Format_8_UIntToSingle:
-                            case GX2AttribFormat.Format_8_SIntToSingle:
-                            case GX2AttribFormat.Format_16_UIntToSingle:
-                            case GX2AttribFormat.Format_16_SIntToSingle:
-                            case GX2AttribFormat.Format_8_8_UIntToSingle:
-                            case GX2AttribFormat.Format_8_8_SIntToSingle:
-                            case GX2AttribFormat.Format_16_16_UIntToSingle:
-                            case GX2AttribFormat.Format_16_16_SIntToSingle:
-                            case GX2AttribFormat.Format_8_8_8_8_UIntToSingle:
-                            case GX2AttribFormat.Format_8_8_8_8_SIntToSingle:
-                            case GX2AttribFormat.Format_16_16_16_16_UIntToSingle:
-                            case GX2AttribFormat.Format_16_16_16_16_SIntToSingle:
-                                Debugger.Break();
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-
         private static void TestVertexAttribFormat(ResFile resFile)
         {
             foreach (Model model in resFile.Models.Values)
@@ -162,7 +50,7 @@ namespace Syroot.NintenTools.Bfres.Test
                 foreach (VertexBuffer vertexBuffer in model.VertexBuffers)
                 {
                     Console.WriteLine($"\tVertexBuffer {vertexBufferIndex}");
-                    VertexBufferHelper helper = new VertexBufferHelper(vertexBuffer, resFile.ByteOrder);
+                    VertexBufferHelper helper = new VertexBufferHelper(vertexBuffer, ByteOrder.LittleEndian);
                     foreach (VertexBufferHelperAttrib attrib in helper.Attributes)
                     {
                         IList<Vector4F> elements;
