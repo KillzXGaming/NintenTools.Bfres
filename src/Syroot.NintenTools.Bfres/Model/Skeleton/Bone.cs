@@ -55,7 +55,7 @@ namespace Syroot.NintenTools.Bfres
         public BoneFlags Flags
         {
             get { return (BoneFlags)(_flags & _flagsMask); }
-            set { _flags &= ~_flagsMask | (uint)value; }
+            set { _flags = _flags & ~_flagsMask | (uint)value; }
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Syroot.NintenTools.Bfres
         public BoneFlagsRotation FlagsRotation
         {
             get { return (BoneFlagsRotation)(_flags & _flagsMaskRotate); }
-            set { _flags &= ~_flagsMaskRotate | (uint)value; }
+            set { _flags = _flags & ~_flagsMaskRotate | (uint)value; }
         }
 
         /// <summary>
@@ -73,19 +73,19 @@ namespace Syroot.NintenTools.Bfres
         public BoneFlagsBillboard FlagsBillboard
         {
             get { return (BoneFlagsBillboard)(_flags & _flagsMaskBillboard); }
-            set { _flags &= ~_flagsMaskBillboard | (uint)value; }
+            set { _flags = _flags & ~_flagsMaskBillboard | (uint)value; }
         }
         
         public BoneFlagsTransform FlagsTransform
         {
             get { return (BoneFlagsTransform)(_flags & _flagsMaskTransform); }
-            set { _flags &= ~_flagsMaskTransform | (uint)value; }
+            set { _flags = _flags & ~_flagsMaskTransform | (uint)value; }
         }
 
         public BoneFlagsTransformCumulative FlagsTransformCumulative
         {
             get { return (BoneFlagsTransformCumulative)(_flags & _flagsMaskTransformCumulative); }
-            set { _flags &= ~_flagsMaskTransformCumulative | (uint)value; }
+            set { _flags = _flags & ~_flagsMaskTransformCumulative | (uint)value; }
         }
 
         /// <summary>

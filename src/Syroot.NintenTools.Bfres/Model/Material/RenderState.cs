@@ -23,13 +23,13 @@ namespace Syroot.NintenTools.Bfres
         public RenderStateFlagsMode FlagsMode
         {
             get { return (RenderStateFlagsMode)(_flags & _flagsMaskMode); }
-            set { _flags &= ~_flagsMaskMode | (uint)value; }
+            set { _flags = _flags & ~_flagsMaskMode | (uint)value; }
         }
 
         public RenderStateFlagsBlendMode FlagsBlendMode
         {
             get { return (RenderStateFlagsBlendMode)(_flags & _flagsMaskBlendMode); }
-            set { _flags &= ~_flagsMaskBlendMode | (uint)value; }
+            set { _flags = _flags & ~_flagsMaskBlendMode | (uint)value; }
         }
 
         /// <summary>

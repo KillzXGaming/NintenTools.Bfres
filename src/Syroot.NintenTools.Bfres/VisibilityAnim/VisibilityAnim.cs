@@ -42,7 +42,7 @@ namespace Syroot.NintenTools.Bfres
         public VisibilityAnimFlags Flags
         {
             get { return (VisibilityAnimFlags)(_flags & _flagsMask); }
-            set { _flags &= (ushort)(~_flagsMask | (ushort)value); }
+            set { _flags = (ushort)(_flags & ~_flagsMask | (ushort)value); }
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Syroot.NintenTools.Bfres
         public VisibilityAnimType Type
         {
             get { return (VisibilityAnimType)(_flags & _flagsMaskType); }
-            set { _flags &= (ushort)(~_flagsMaskType | (ushort)value); }
+            set { _flags = (ushort)(_flags & ~_flagsMaskType | (ushort)value); }
         }
 
         /// <summary>

@@ -25,7 +25,7 @@ namespace Syroot.NintenTools.Bfres
         public SkeletonFlagsScaling FlagsScaling
         {
             get { return (SkeletonFlagsScaling)(_flags & _flagsScalingMask); }
-            set { _flags &= ~_flagsScalingMask | (uint)value; }
+            set { _flags = _flags & ~_flagsScalingMask | (uint)value; }
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace Syroot.NintenTools.Bfres
         public SkeletonFlagsRotation FlagsRotation
         {
             get { return (SkeletonFlagsRotation)(_flags & _flagsRotationMask); }
-            set { _flags &= ~_flagsRotationMask | (uint)value; }
+            set { _flags = _flags & ~_flagsRotationMask | (uint)value; }
         }
 
         /// <summary>

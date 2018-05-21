@@ -30,7 +30,7 @@ namespace Syroot.NintenTools.Bfres
         public BoneAnimFlagsBase FlagsBase
         {
             get { return (BoneAnimFlagsBase)(_flags & _flagsMaskBase); }
-            set { _flags &= ~_flagsMaskBase | (uint)value; }
+            set { _flags = _flags & ~_flagsMaskBase | (uint)value; }
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Syroot.NintenTools.Bfres
         public BoneAnimFlagsCurve FlagsCurve
         {
             get { return (BoneAnimFlagsCurve)(_flags & _flagsMaskCurve); }
-            set { _flags &= ~_flagsMaskCurve | (uint)value; }
+            set { _flags = _flags & ~_flagsMaskCurve | (uint)value; }
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Syroot.NintenTools.Bfres
         public BoneAnimFlagsTransform FlagsTransform
         {
             get { return (BoneAnimFlagsTransform)(_flags & _flagsMaskTransform); }
-            set { _flags &= ~_flagsMaskTransform | (uint)value; }
+            set { _flags = _flags & ~_flagsMaskTransform | (uint)value; }
         }
 
         /// <summary>

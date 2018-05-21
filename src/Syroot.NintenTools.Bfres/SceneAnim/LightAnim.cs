@@ -30,7 +30,7 @@ namespace Syroot.NintenTools.Bfres
         public LightAnimFlags Flags
         {
             get { return (LightAnimFlags)(_flags & _flagsMask); }
-            set { _flags &= (ushort)(~_flagsMask | (ushort)value); }
+            set { _flags = (ushort)(_flags & ~_flagsMask | (ushort)value); }
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Syroot.NintenTools.Bfres
         public LightAnimField AnimatedFields
         {
             get { return (LightAnimField)(_flags & _flagsMaskFields); }
-            set { _flags &= (ushort)(~_flagsMaskFields | (ushort)value); }
+            set { _flags = (ushort)(_flags & ~_flagsMaskFields | (ushort)value); }
         }
 
         /// <summary>

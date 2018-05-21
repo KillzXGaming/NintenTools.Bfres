@@ -28,16 +28,24 @@ namespace Syroot.NintenTools.Bfres.Test
 
         private static void Main(string[] args)
         {
-            Yaz0Compression.Decompress(@"D:\Pictures\zBFRES\BotW\Animal_Bass.sbfres",
-                @"D:\Pictures\zBFRES\BotW\Animal_Bass.bfres");
-            ResFile resFile = new ResFile(@"D:\Pictures\zBFRES\BotW\Animal_Bass.bfres");
+            using (MemoryStream decompressed = new MemoryStream())
+            {
+                Yaz0Compression.Decompress(@"D:\Archive\Wii U\_Roms\MK8\content\driver\Iggy.szs", decompressed);
+                decompressed.Position = 0;
+                ResFile resFile = new ResFile(decompressed);
+                SkeletalAnim skeletalAnim = resFile.SkeletalAnims[0];
+                Console.WriteLine(skeletalAnim.FlagsRotate);
+                skeletalAnim.FlagsScale = SkeletalAnimFlagsScale.Softimage;
+                skeletalAnim.FlagsScale = SkeletalAnimFlagsScale.Maya;
+                Console.WriteLine(skeletalAnim.FlagsRotate);
+            }
 
             //ResFile resFile = new ResFile(@"D:\Archive\Wii U\_Roms\MK8\content\race_common\Coin\Coin.bfres");
             //resFile.Models[0].Shapes[0].Meshes[0].SetIndices(new uint[] { 1, 2, 3 }, GX2IndexFormat.UInt32);
             //resFile.Save(@"D:\Archive\Wii U\_Roms\MK8\content\race_common\Coin\Coin.bfres");
 
             //LoadResFiles(LogSurfaceFormats);
-            
+
             Console.WriteLine("Done.");
             Console.ReadLine();
         }

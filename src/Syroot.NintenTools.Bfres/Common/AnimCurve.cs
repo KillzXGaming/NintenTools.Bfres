@@ -26,7 +26,7 @@ namespace Syroot.NintenTools.Bfres
         public AnimCurveFrameType FrameType
         {
             get { return (AnimCurveFrameType)(_flags & _flagsMaskFrameType); }
-            set { _flags &= (ushort)(~_flagsMaskFrameType | (ushort)value); }
+            set { _flags = (ushort)(_flags & ~_flagsMaskFrameType | (ushort)value); }
         }
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace Syroot.NintenTools.Bfres
         public AnimCurveKeyType KeyType
         {
             get { return (AnimCurveKeyType)(_flags & _flagsMaskKeyType); }
-            set { _flags &= (ushort)(~_flagsMaskKeyType | (ushort)value); }
+            set { _flags = (ushort)(_flags & ~_flagsMaskKeyType | (ushort)value); }
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Syroot.NintenTools.Bfres
         public AnimCurveType CurveType
         {
             get { return (AnimCurveType)(_flags & _flagsMaskCurveType); }
-            set { _flags &= (ushort)(~_flagsMaskCurveType | (ushort)value); }
+            set { _flags = (ushort)(_flags & ~_flagsMaskCurveType | (ushort)value); }
         }
 
         /// <summary>
