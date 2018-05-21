@@ -88,7 +88,7 @@ namespace Syroot.NintenTools.Bfres
         
         void IResData.Save(ResFileSaver saver)
         {
-            saver.Write(Type, true);
+            saver.WriteEnum(Type, true);
             if (saver.ResFile.Version >= 0x03030000)
             {
                 saver.Write((byte)DataSize);

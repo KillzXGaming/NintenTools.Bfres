@@ -207,7 +207,7 @@ namespace Syroot.NintenTools.Bfres
             
             saver.WriteSignature(_signature);
             saver.Write(Version);
-            saver.Write(ByteOrder, true);
+            saver.WriteEnum(ByteOrder, true);
             saver.Write((ushort)0x0010); // SizHeader
             saver.SaveFieldFileSize();
             saver.Write(Alignment);

@@ -101,7 +101,7 @@ namespace Syroot.NintenTools.Bfres
         {
             saver.WriteSignature(_signature);
             saver.SaveString(Name);
-            saver.Write(Flags, true);
+            saver.WriteEnum(Flags, true);
             saver.Write((ushort)saver.CurrentIndex);
             saver.Write((ushort)RenderInfos.Count);
             saver.Write((byte)Samplers.Count);

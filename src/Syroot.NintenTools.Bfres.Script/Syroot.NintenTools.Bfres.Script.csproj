@@ -10,7 +10,7 @@
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/Syroot/NintenTools.Bfres</RepositoryUrl>
 		<TargetFrameworks>net46</TargetFrameworks>
-		<VersionPrefix>1.2.3</VersionPrefix>
+		<VersionPrefix>1.3.0</VersionPrefix>
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Syroot.NintenTools.Bfres\Syroot.NintenTools.Bfres.csproj" />
@@ -18,6 +18,6 @@
 		<PackageReference Include="Fody" Version="2.1.0" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.2.0" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
-		<PackageReference Include="Syroot.Maths" Version="1.5.0" />
+		<PackageReference Include="Syroot.Maths" Version="1.5.1" />
 	</ItemGroup>
 </Project>

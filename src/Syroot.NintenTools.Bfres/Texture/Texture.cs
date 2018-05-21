@@ -185,19 +185,19 @@ namespace Syroot.NintenTools.Bfres
         void IResData.Save(ResFileSaver saver)
         {
             saver.WriteSignature(_signature);
-            saver.Write(Dim, true);
+            saver.WriteEnum(Dim, true);
             saver.Write(Width);
             saver.Write(Height);
             saver.Write(Depth);
             saver.Write(MipCount);
-            saver.Write(Format, true);
-            saver.Write(AAMode, true);
-            saver.Write(Use, true);
+            saver.WriteEnum(Format, true);
+            saver.WriteEnum(AAMode, true);
+            saver.WriteEnum(Use, true);
             saver.Write(Data.Length);
             saver.Write(0); // ImagePointer
             saver.Write(MipData == null ? 0 : MipData.Length);
             saver.Write(0); // MipPointer
-            saver.Write(TileMode, true);
+            saver.WriteEnum(TileMode, true);
             saver.Write(Swizzle);
             saver.Write(Alignment);
             saver.Write(Pitch);
@@ -206,10 +206,10 @@ namespace Syroot.NintenTools.Bfres
             saver.Write(ViewMipCount);
             saver.Write(ViewSliceFirst);
             saver.Write(ViewSliceCount);
-            saver.Write(CompSelR, true);
-            saver.Write(CompSelG, true);
-            saver.Write(CompSelB, true);
-            saver.Write(CompSelA, true);
+            saver.WriteEnum(CompSelR, true);
+            saver.WriteEnum(CompSelG, true);
+            saver.WriteEnum(CompSelB, true);
+            saver.WriteEnum(CompSelA, true);
             saver.Write(Regs);
             saver.Write(0); // Handle
             saver.Write(ArrayLength);

@@ -93,7 +93,7 @@ namespace Syroot.NintenTools.Bfres
             saver.WriteSignature(_signature);
             saver.SaveString(Name);
             saver.SaveString(Path);
-            saver.Write(Flags, true);
+            saver.WriteEnum(Flags, true);
             saver.Write((ushort)UserData.Count);
             saver.Write(FrameCount);
             saver.Write((ushort)VertexShapeAnims.Count);

@@ -183,8 +183,8 @@ namespace Syroot.NintenTools.Bfres
 
         void IResData.Save(ResFileSaver saver)
         {
-            saver.Write(PrimitiveType, true);
-            saver.Write(IndexFormat, true);
+            saver.WriteEnum(PrimitiveType, true);
+            saver.WriteEnum(IndexFormat, true);
             saver.Write(IndexCount);
             saver.Write((ushort)SubMeshes.Count);
             saver.Seek(2);

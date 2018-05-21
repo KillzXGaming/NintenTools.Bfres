@@ -142,9 +142,9 @@ namespace Syroot.NintenTools.Bfres.Core
         /// </summary>
         /// <param name="self">The extended <see cref="BinaryDataWriter"/>.</param>
         /// <param name="value">The <see cref="Vector2Bool"/> instance.</param>
-        /// <param name="format">The <see cref="BinaryBooleanFormat"/> in which values are stored.</param>
+        /// <param name="format">The <see cref="BooleanDataFormat"/> in which values are stored.</param>
         public static void Write(this BinaryDataWriter self, Vector2Bool value,
-            BinaryBooleanFormat format = BinaryBooleanFormat.NonZeroByte)
+            BooleanDataFormat format = BooleanDataFormat.Byte)
         {
             self.Write(value.X, format);
             self.Write(value.Y, format);
@@ -155,9 +155,9 @@ namespace Syroot.NintenTools.Bfres.Core
         /// </summary>
         /// <param name="self">The extended <see cref="BinaryDataWriter"/>.</param>
         /// <param name="values">The <see cref="Vector2Bool"/> instances.</param>
-        /// <param name="format">The <see cref="BinaryBooleanFormat"/> in which values are stored.</param>
+        /// <param name="format">The <see cref="BooleanDataFormat"/> in which values are stored.</param>
         public static void Write(this BinaryDataWriter self, IEnumerable<Vector2Bool> values,
-            BinaryBooleanFormat format = BinaryBooleanFormat.NonZeroByte)
+            BooleanDataFormat format = BooleanDataFormat.Byte)
         {
             foreach (Vector2Bool value in values)
             {
@@ -247,9 +247,9 @@ namespace Syroot.NintenTools.Bfres.Core
         /// </summary>
         /// <param name="self">The extended <see cref="BinaryDataWriter"/>.</param>
         /// <param name="value">The <see cref="Vector3Bool"/> instance.</param>
-        /// <param name="format">The <see cref="BinaryBooleanFormat"/> in which values are stored.</param>
+        /// <param name="format">The <see cref="BooleanDataFormat"/> in which values are stored.</param>
         public static void Write(this BinaryDataWriter self, Vector3Bool value,
-            BinaryBooleanFormat format = BinaryBooleanFormat.NonZeroByte)
+            BooleanDataFormat format = BooleanDataFormat.Byte)
         {
             self.Write(value.X, format);
             self.Write(value.Y, format);
@@ -261,9 +261,9 @@ namespace Syroot.NintenTools.Bfres.Core
         /// </summary>
         /// <param name="self">The extended <see cref="BinaryDataWriter"/>.</param>
         /// <param name="values">The <see cref="Vector3Bool"/> instances.</param>
-        /// <param name="format">The <see cref="BinaryBooleanFormat"/> in which values are stored.</param>
+        /// <param name="format">The <see cref="BooleanDataFormat"/> in which values are stored.</param>
         public static void Write(this BinaryDataWriter self, IEnumerable<Vector3Bool> values,
-            BinaryBooleanFormat format = BinaryBooleanFormat.NonZeroByte)
+            BooleanDataFormat format = BooleanDataFormat.Byte)
         {
             foreach (Vector3Bool value in values)
             {
@@ -356,9 +356,9 @@ namespace Syroot.NintenTools.Bfres.Core
         /// </summary>
         /// <param name="self">The extended <see cref="BinaryDataWriter"/>.</param>
         /// <param name="value">The <see cref="Vector4Bool"/> instance.</param>
-        /// <param name="format">The <see cref="BinaryBooleanFormat"/> in which values are stored.</param>
+        /// <param name="format">The <see cref="BooleanDataFormat"/> in which values are stored.</param>
         public static void Write(this BinaryDataWriter self, Vector4Bool value,
-            BinaryBooleanFormat format = BinaryBooleanFormat.NonZeroByte)
+            BooleanDataFormat format = BooleanDataFormat.Byte)
         {
             self.Write(value.X, format);
             self.Write(value.Y, format);
@@ -371,9 +371,9 @@ namespace Syroot.NintenTools.Bfres.Core
         /// </summary>
         /// <param name="self">The extended <see cref="BinaryDataWriter"/>.</param>
         /// <param name="values">The <see cref="Vector4Bool"/> instances.</param>
-        /// <param name="format">The <see cref="BinaryBooleanFormat"/> in which values are stored.</param>
+        /// <param name="format">The <see cref="BooleanDataFormat"/> in which values are stored.</param>
         public static void Write(this BinaryDataWriter self, IEnumerable<Vector4Bool> values,
-            BinaryBooleanFormat format = BinaryBooleanFormat.NonZeroByte)
+            BooleanDataFormat format = BooleanDataFormat.Byte)
         {
             foreach (Vector4Bool value in values)
             {

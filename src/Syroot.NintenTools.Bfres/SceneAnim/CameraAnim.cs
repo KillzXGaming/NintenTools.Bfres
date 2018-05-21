@@ -74,7 +74,7 @@ namespace Syroot.NintenTools.Bfres
         void IResData.Save(ResFileSaver saver)
         {
             saver.WriteSignature(_signature);
-            saver.Write(Flags, true);
+            saver.WriteEnum(Flags, true);
             saver.Seek(2);
             saver.Write(FrameCount);
             saver.Write((byte)Curves.Count);

@@ -388,7 +388,7 @@ namespace Syroot.NintenTools.Bfres.Core
                 }
 
                 // Write the name.
-                Write(entry.Key, BinaryStringFormat.ZeroTerminated, entry.Value.Encoding ?? Encoding);
+                Write(entry.Key, StringDataFormat.ZeroTerminated, entry.Value.Encoding ?? Encoding);
                 Align(4);
             }
             BaseStream.SetLength(Position); // Workaround to make last alignment expand the file if nothing follows.

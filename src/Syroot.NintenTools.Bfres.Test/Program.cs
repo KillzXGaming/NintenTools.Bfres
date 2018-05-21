@@ -17,7 +17,7 @@ namespace Syroot.NintenTools.Bfres.Test
         // ---- FIELDS -------------------------------------------------------------------------------------------------
 
         private static Stopwatch _stopwatch = new Stopwatch();
-        private static string[] _searchPaths = new string[]
+        private static readonly string[] _searchPaths = new string[]
         {
             @"D:\Pictures\zBFRES\Decompressed",
             @"D:\Archive\Wii U\_Roms\MK8"
