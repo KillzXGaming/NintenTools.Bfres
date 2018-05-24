@@ -292,7 +292,17 @@ typedef struct // Shape
 	byte numKeyShape;
 	byte numTargetAttrib;
 	ushort numBoundingNodes; // Padding in engine.
-	float radius;
+	
+	
+    if (file.version >= 0x04050000)
+	{
+	    Offset RadiusArrayOffset;
+	}
+	else
+	{
+	    float radius;
+	}
+	
 	Offset ofsVertexBuffer;
 	Offset ofsMeshList;
 	Offset ofsSkinBoneIndexList;
@@ -307,6 +317,7 @@ typedef struct // Shape
 	{
 		Offset ofsBoundingList;
 	}
+	
 	uint userPointer;
 	local uint pos <hidden=true> = FTell();
 	// Read vertex buffer.
@@ -341,12 +352,27 @@ typedef struct // Shape
 		ushort boundingIndices[numBoundingNodes] <optimize=true>;
 		FAlign(4);
 	}
+	else if (file.version >= 0x04050000)
+	{
+		// Read sub mesh boundings.
+		FSeek(ofsBoundingList.target);
+		if (numMesh != 1)
+		    Bounding boundings[meshes[0].numSubMesh + 1 + numMesh] <optimize=true>;
+		else
+		    Bounding boundings[meshes[0].numSubMesh + numMesh] <optimize=true>;
+	}
 	else
 	{
 		// Read sub mesh boundings.
 		FSeek(ofsBoundingList.target);
 		Bounding boundings[meshes[0].numSubMesh + 1] <optimize=true>;
 	}
+    if (file.version >= 0x04050000)
+	{
+	    FSeek(RadiusArrayOffset.target);
+	    float radius[numMesh];
+	}
+	
 	FSeek(pos); // Seek back to header end.
 } Shape <bgcolor=0xCDCDFF, read=ShapeRead>;
 
