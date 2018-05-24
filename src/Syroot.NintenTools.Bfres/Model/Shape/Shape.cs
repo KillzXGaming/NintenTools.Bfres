@@ -106,10 +106,10 @@ namespace Syroot.NintenTools.Bfres
             byte numKeyShape = loader.ReadByte();
             TargetAttribCount = loader.ReadByte();
             ushort numSubMeshBoundingNodes = loader.ReadUInt16(); // Padding in engine.
-            
-            if (loader.ResFile.Version <= 0x04050000)
+            // BOTW has multiple radii per LOD.
+           if (loader.ResFile.Version >= 0x04050000)
             {
-                RadiusArray = loader.LoadCustom(() => loader.ReadSingles(Meshes.Count + 1));
+                RadiusArray = loader.LoadCustom(() => loader.ReadSingles(numMesh));
             }
             else
             {
@@ -120,16 +120,20 @@ namespace Syroot.NintenTools.Bfres
             Meshes = loader.LoadList<Mesh>(numMesh);
             SkinBoneIndices = loader.LoadCustom(() => loader.ReadUInt16s(numSkinBoneIndex));
             KeyShapes = loader.LoadDict<KeyShape>();
-            // TODO: At least BotW has more data following the Boundings, or that are no boundings at all.
-            if (numSubMeshBoundingNodes == 0)
+            // BOTW has multiple boundings per LOD.
+            if (numSubMeshBoundingNodes == 0 && loader.ResFile.Version >= 0x04050000)
             {
                 // Compute the count differently if the node count was padding.
-                SubMeshBoundings = loader.LoadCustom(() => loader.ReadBoundings(Meshes[0].SubMeshes.Count + 1)); 
+                if (Meshes.Count > 1)
+                    SubMeshBoundings = loader.LoadCustom(() => loader.ReadBoundings(Meshes[0].SubMeshes.Count + 1 + numMesh));
+                else //If no LOD meshes then don't add + 1
+                    SubMeshBoundings = loader.LoadCustom(() => loader.ReadBoundings(Meshes[0].SubMeshes.Count + numMesh));
+                SubMeshBoundingNodes = new List<BoundingNode>();
             }
-           else if (numSubMeshBoundingNodes == 0 && loader.ResFile.Version >= 0x04050000)
+            else if (numSubMeshBoundingNodes == 0)
             {
                 // Compute the count differently if the node count was padding.
-                SubMeshBoundings = loader.LoadCustom(() => loader.ReadBoundings(Meshes[0].SubMeshes.Count + 1 * Meshes.Count));
+                SubMeshBoundings = loader.LoadCustom(() => loader.ReadBoundings(Meshes[0].SubMeshes.Count + 1));
                 SubMeshBoundingNodes = new List<BoundingNode>();
             }
             else
@@ -168,7 +172,7 @@ namespace Syroot.NintenTools.Bfres
             saver.SaveList(Meshes);
             saver.SaveCustom(SkinBoneIndices, () => saver.Write(SkinBoneIndices));
             saver.SaveDict(KeyShapes);
-            if (SubMeshBoundingNodes == null)
+            if (SubMeshBoundingNodes.Count == 0)
             {
                 saver.SaveCustom(SubMeshBoundings, () => saver.Write(SubMeshBoundings));
             }
