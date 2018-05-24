@@ -47,9 +47,10 @@ namespace Syroot.NintenTools.Bfres
         public ushort VertexBufferIndex { get; set; }
 
         /// <summary>
-        /// Gets or sets the bounding radius spanning the shape.
+        /// Gets or sets the bounding radius/radii spanning the shape.
+        /// BOTW uses multiple per LOD mesh.
         /// </summary>
-        public float Radius { get; set; }
+        public float[] RadiusArray { get; set; }
 
         /// <summary>
         /// Gets or sets the number of bones influencing the vertices stored in this buffer. 0 influences equal
@@ -105,8 +106,17 @@ namespace Syroot.NintenTools.Bfres
             byte numKeyShape = loader.ReadByte();
             TargetAttribCount = loader.ReadByte();
             ushort numSubMeshBoundingNodes = loader.ReadUInt16(); // Padding in engine.
-            Radius = loader.ReadSingle();
+            
+            if (loader.ResFile.Version <= 0x04050000)
+            {
+                RadiusArray = loader.LoadCustom(() => loader.ReadSingles(Meshes.Count + 1));
+            }
+            else
+            {
+                RadiusArray = loader.ReadSingles(1);
+            }
             VertexBuffer = loader.Load<VertexBuffer>();
+            
             Meshes = loader.LoadList<Mesh>(numMesh);
             SkinBoneIndices = loader.LoadCustom(() => loader.ReadUInt16s(numSkinBoneIndex));
             KeyShapes = loader.LoadDict<KeyShape>();
@@ -115,6 +125,12 @@ namespace Syroot.NintenTools.Bfres
             {
                 // Compute the count differently if the node count was padding.
                 SubMeshBoundings = loader.LoadCustom(() => loader.ReadBoundings(Meshes[0].SubMeshes.Count + 1)); 
+            }
+           else if (numSubMeshBoundingNodes == 0 && loader.ResFile.Version >= 0x04050000)
+            {
+                // Compute the count differently if the node count was padding.
+                SubMeshBoundings = loader.LoadCustom(() => loader.ReadBoundings(Meshes[0].SubMeshes.Count + 1 * Meshes.Count));
+                SubMeshBoundingNodes = new List<BoundingNode>();
             }
             else
             {
@@ -140,7 +156,14 @@ namespace Syroot.NintenTools.Bfres
             saver.Write((byte)KeyShapes.Count);
             saver.Write(TargetAttribCount);
             saver.Write((ushort)SubMeshBoundingNodes?.Count);
-            saver.Write(Radius);
+           if (saver.ResFile.Version >= 0x04050000)
+            {
+                saver.SaveCustom(RadiusArray, () => saver.Write(RadiusArray));
+            }
+            else
+            {
+                saver.Write(RadiusArray);
+            }
             saver.Save(VertexBuffer);
             saver.SaveList(Meshes);
             saver.SaveCustom(SkinBoneIndices, () => saver.Write(SkinBoneIndices));
