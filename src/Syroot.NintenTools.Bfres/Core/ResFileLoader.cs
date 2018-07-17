@@ -168,7 +168,7 @@ namespace Syroot.NintenTools.Bfres.Core
             encoding = encoding ?? Encoding;
             using (TemporarySeek(offset, SeekOrigin.Begin))
             {
-                return ReadString(StringDataFormat.ZeroTerminated, encoding);
+                return ReadString(BinaryStringFormat.ZeroTerminated, encoding);
             }
         }
 
@@ -193,7 +193,7 @@ namespace Syroot.NintenTools.Bfres.Core
                     if (offset == 0) continue;
 
                     Position = offset;
-                    names[i] = ReadString(StringDataFormat.ZeroTerminated, encoding);
+                    names[i] = ReadString(BinaryStringFormat.ZeroTerminated, encoding);
                 }
                 return names;
             }

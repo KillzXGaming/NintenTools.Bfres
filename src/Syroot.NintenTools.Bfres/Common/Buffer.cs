@@ -18,7 +18,9 @@ namespace Syroot.NintenTools.Bfres
         /// The raw bytes stored for each buffering.
         /// </summary>
         public byte[][] Data { get; set; }
-        
+
+        public long BufferOffset;
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
@@ -29,9 +31,11 @@ namespace Syroot.NintenTools.Bfres
             Stride = loader.ReadUInt16();
             ushort numBuffering = loader.ReadUInt16();
             uint contextPointer = loader.ReadUInt32();
+           
             Data = loader.LoadCustom(() =>
             {
                 byte[][] data = new byte[numBuffering][];
+                BufferOffset = loader.Position;
                 for (int i = 0; i < numBuffering; i++)
                 {
                     data[i] = loader.ReadBytes((int)size);

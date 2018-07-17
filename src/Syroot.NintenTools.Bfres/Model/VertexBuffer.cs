@@ -55,6 +55,11 @@ namespace Syroot.NintenTools.Bfres
 
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
+        public VertexBuffer ShallowCopy()
+        {
+            return (VertexBuffer)this.MemberwiseClone();
+        }
+
         void IResData.Load(ResFileLoader loader)
         {
             loader.CheckSignature(_signature);

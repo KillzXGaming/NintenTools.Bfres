@@ -76,6 +76,7 @@ namespace Syroot.NintenTools.Bfres.Core
         /// </summary>
         internal void Execute()
         {
+
             // Create queues fetching the names for the string pool and data blocks to store behind the headers.
             _savedItems = new List<ItemEntry>();
             _savedStrings = new SortedDictionary<string, StringEntry>(ResStringComparer.Instance);
@@ -126,7 +127,7 @@ namespace Syroot.NintenTools.Bfres.Core
                         break;
                 }
             }
-
+ 
             // Satisfy offsets, strings, and data blocks.
             WriteOffsets();
             WriteStrings();
@@ -193,6 +194,7 @@ namespace Syroot.NintenTools.Bfres.Core
         internal void SaveList<T>(IEnumerable<T> list)
             where T : IResData, new()
         {
+
             if (list?.Count() == 0)
             {
                 Write(0);
@@ -388,7 +390,7 @@ namespace Syroot.NintenTools.Bfres.Core
                 }
 
                 // Write the name.
-                Write(entry.Key, StringDataFormat.ZeroTerminated, entry.Value.Encoding ?? Encoding);
+                Write(entry.Key, BinaryStringFormat.ZeroTerminated, entry.Value.Encoding ?? Encoding);
                 Align(4);
             }
             BaseStream.SetLength(Position); // Workaround to make last alignment expand the file if nothing follows.

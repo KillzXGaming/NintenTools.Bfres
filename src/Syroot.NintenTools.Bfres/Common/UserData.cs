@@ -146,7 +146,7 @@ namespace Syroot.NintenTools.Bfres
         {
             saver.SaveString(Name);
             saver.Write((ushort)((Array)_value).Length); // Unsafe cast, but _value should always be Array.
-            saver.WriteEnum(Type, true);
+            saver.Write(Type, true);
             saver.Seek(1);
             switch (Type)
             {

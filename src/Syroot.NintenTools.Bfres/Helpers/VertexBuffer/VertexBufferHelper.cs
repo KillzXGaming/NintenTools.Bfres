@@ -19,7 +19,7 @@ namespace Syroot.NintenTools.Bfres.Helpers
         /// </summary>
         public VertexBufferHelper()
         {
-            ByteOrder = ByteConverter.System.ByteOrder;
+            ByteOrder = ByteOrderHelper.SystemByteOrder;
             Attributes = new List<VertexBufferHelperAttrib>();
         }
 
@@ -33,7 +33,7 @@ namespace Syroot.NintenTools.Bfres.Helpers
         /// system byte order.</param>
         public VertexBufferHelper(VertexBuffer vertexBuffer, ByteOrder? byteOrder = null)
         {
-            ByteOrder = byteOrder ?? ByteConverter.System.ByteOrder;
+            ByteOrder = byteOrder ?? ByteOrderHelper.SystemByteOrder;
             VertexSkinCount = vertexBuffer.VertexSkinCount;
 
             Attributes = new List<VertexBufferHelperAttrib>(vertexBuffer.Attributes.Count);

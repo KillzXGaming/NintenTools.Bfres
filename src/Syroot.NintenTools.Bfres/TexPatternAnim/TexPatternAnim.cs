@@ -60,12 +60,20 @@ namespace Syroot.NintenTools.Bfres
         /// Gets or sets the <see cref="TexPatternAnim"/> instances creating the animation.
         /// </summary>
         public IList<TexPatternMatAnim> TexPatternMatAnims { get; set; }
+        
 
         /// <summary>
         /// Gets or sets the <see cref="TextureRef"/> instances pointing to <see cref="Texture"/> instances
         /// participating in the animation.
         /// </summary>
         public ResDict<TextureRef> TextureRefs { get; set; }
+
+        /// <summary>
+        /// Note used for older bfres files
+        /// Gets or sets the <see cref="TextureRef"/> instances pointing to <see cref="Texture"/> instances
+        /// participating in the animation.
+        /// </summary>
+        public IList<string> TextureNames { get; set; }
 
         /// <summary>
         /// Gets or sets customly attached <see cref="UserData"/> instances.
@@ -90,7 +98,10 @@ namespace Syroot.NintenTools.Bfres
             BindModel = loader.Load<Model>();
             BindIndices = loader.LoadCustom(() => loader.ReadUInt16s(numMatAnim));
             TexPatternMatAnims = loader.LoadList<TexPatternMatAnim>(numMatAnim);
-            TextureRefs = loader.LoadDict<TextureRef>();
+            if (loader.ResFile.Version >= 0x03040000)
+                TextureRefs = loader.LoadDict<TextureRef>();
+            else
+                TextureNames = loader.LoadStrings(numPatAnim);
             UserData = loader.LoadDict<UserData>();
         }
         
@@ -99,7 +110,7 @@ namespace Syroot.NintenTools.Bfres
             saver.WriteSignature(_signature);
             saver.SaveString(Name);
             saver.SaveString(Path);
-            saver.WriteEnum(Flags, true);
+            saver.Write(Flags, true);
             saver.Write((ushort)UserData.Count);
             saver.Write(FrameCount);
             saver.Write((ushort)TextureRefs.Count);
@@ -110,7 +121,10 @@ namespace Syroot.NintenTools.Bfres
             saver.Save(BindModel);
             saver.SaveCustom(BindIndices, () => saver.Write(BindIndices));
             saver.SaveList(TexPatternMatAnims);
-            saver.SaveDict(TextureRefs);
+            if (saver.ResFile.Version >= 0x03040000)
+                saver.SaveDict(TextureRefs);
+            else
+                saver.SaveStrings(TextureNames);
             saver.SaveDict(UserData);
         }
     }

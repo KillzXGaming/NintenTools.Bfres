@@ -69,6 +69,11 @@ namespace Syroot.NintenTools.Bfres
 
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
+        public Material ShallowCopy()
+        {
+            return (Material)this.MemberwiseClone();
+        }
+
         void IResData.Load(ResFileLoader loader)
         {
             loader.CheckSignature(_signature);
@@ -101,7 +106,7 @@ namespace Syroot.NintenTools.Bfres
         {
             saver.WriteSignature(_signature);
             saver.SaveString(Name);
-            saver.WriteEnum(Flags, true);
+            saver.Write(Flags, true);
             saver.Write((ushort)saver.CurrentIndex);
             saver.Write((ushort)RenderInfos.Count);
             saver.Write((byte)Samplers.Count);

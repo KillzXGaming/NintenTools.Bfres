@@ -190,10 +190,10 @@ namespace Syroot.NintenTools.Bfres.Core
         /// Reads a <see cref="Vector2Bool"/> instance from the current stream and returns it.
         /// </summary>
         /// <param name="self">The extended <see cref="BinaryDataReader"/>.</param>
-        /// <param name="format">The <see cref="BooleanDataFormat"/> in which values are stored.</param>
+        /// <param name="format">The <see cref="BinaryBooleanFormat"/> in which values are stored.</param>
         /// <returns>The <see cref="Vector2Bool"/> instance.</returns>
         public static Vector2Bool ReadVector2Bool(this BinaryDataReader self,
-            BooleanDataFormat format = BooleanDataFormat.Byte)
+            BinaryBooleanFormat format = BinaryBooleanFormat.NonZeroByte)
         {
             return new Vector2Bool(self.ReadBoolean(format), self.ReadBoolean(format));
         }
@@ -203,10 +203,10 @@ namespace Syroot.NintenTools.Bfres.Core
         /// </summary>
         /// <param name="self">The extended <see cref="BinaryDataReader"/>.</param>
         /// <param name="count">The number of instances to read.</param>
-        /// <param name="format">The <see cref="BooleanDataFormat"/> in which values are stored.</param>
+        /// <param name="format">The <see cref="BinaryBooleanFormat"/> in which values are stored.</param>
         /// <returns>The <see cref="Vector2Bool"/> instances.</returns>
         public static IList<Vector2Bool> ReadVector2Bools(this BinaryDataReader self, int count,
-            BooleanDataFormat format = BooleanDataFormat.Byte)
+            BinaryBooleanFormat format = BinaryBooleanFormat.NonZeroByte)
         {
             Vector2Bool[] values = new Vector2Bool[count];
             for (int i = 0; i < count; i++)
@@ -302,10 +302,10 @@ namespace Syroot.NintenTools.Bfres.Core
         /// Reads a <see cref="Vector3Bool"/> instance from the current stream and returns it.
         /// </summary>
         /// <param name="self">The extended <see cref="BinaryDataReader"/>.</param>
-        /// <param name="format">The <see cref="BooleanDataFormat"/> in which values are stored.</param>
+        /// <param name="format">The <see cref="BinaryBooleanFormat"/> in which values are stored.</param>
         /// <returns>The <see cref="Vector3Bool"/> instance.</returns>
         public static Vector3Bool ReadVector3Bool(this BinaryDataReader self,
-            BooleanDataFormat format = BooleanDataFormat.Byte)
+            BinaryBooleanFormat format = BinaryBooleanFormat.NonZeroByte)
         {
             return new Vector3Bool(self.ReadBoolean(format), self.ReadBoolean(format), self.ReadBoolean(format));
         }
@@ -315,10 +315,10 @@ namespace Syroot.NintenTools.Bfres.Core
         /// </summary>
         /// <param name="self">The extended <see cref="BinaryDataReader"/>.</param>
         /// <param name="count">The number of instances to read.</param>
-        /// <param name="format">The <see cref="BooleanDataFormat"/> in which values are stored.</param>
+        /// <param name="format">The <see cref="BinaryBooleanFormat"/> in which values are stored.</param>
         /// <returns>The <see cref="Vector3Bool"/> instances.</returns>
         public static IList<Vector3Bool> ReadVector3Bools(this BinaryDataReader self, int count,
-            BooleanDataFormat format = BooleanDataFormat.Byte)
+            BinaryBooleanFormat format = BinaryBooleanFormat.NonZeroByte)
         {
             Vector3Bool[] values = new Vector3Bool[count];
             for (int i = 0; i < count; i++)
@@ -414,10 +414,10 @@ namespace Syroot.NintenTools.Bfres.Core
         /// Reads a <see cref="Vector4Bool"/> instance from the current stream and returns it.
         /// </summary>
         /// <param name="self">The extended <see cref="BinaryDataReader"/>.</param>
-        /// <param name="format">The <see cref="BooleanDataFormat"/> in which values are stored.</param>
+        /// <param name="format">The <see cref="BinaryBooleanFormat"/> in which values are stored.</param>
         /// <returns>The <see cref="Vector4Bool"/> instance.</returns>
         public static Vector4Bool ReadVector4Bool(this BinaryDataReader self,
-            BooleanDataFormat format = BooleanDataFormat.Byte)
+            BinaryBooleanFormat format = BinaryBooleanFormat.NonZeroByte)
         {
             return new Vector4Bool(self.ReadBoolean(format), self.ReadBoolean(format), self.ReadBoolean(format),
                 self.ReadBoolean(format));
@@ -428,10 +428,10 @@ namespace Syroot.NintenTools.Bfres.Core
         /// </summary>
         /// <param name="self">The extended <see cref="BinaryDataReader"/>.</param>
         /// <param name="count">The number of instances to read.</param>
-        /// <param name="format">The <see cref="BooleanDataFormat"/> in which values are stored.</param>
+        /// <param name="format">The <see cref="BinaryBooleanFormat"/> in which values are stored.</param>
         /// <returns>The <see cref="Vector4Bool"/> instances.</returns>
         public static IList<Vector4Bool> ReadVector4Bools(this BinaryDataReader self, int count,
-            BooleanDataFormat format = BooleanDataFormat.Byte)
+            BinaryBooleanFormat format = BinaryBooleanFormat.NonZeroByte)
         {
             Vector4Bool[] values = new Vector4Bool[count];
             for (int i = 0; i < count; i++)

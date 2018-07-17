@@ -19,9 +19,10 @@ namespace Syroot.NintenTools.Bfres
 
         private const uint _flagsMaskScale = 0b00000000_00000000_00000011_00000000;
         private const uint _flagsMaskRotate = 0b00000000_00000000_01110000_00000000;
+        private const uint _flagsMaskAnimSettings = 0b00000000_00000000_00000000_00001111;
 
         // ---- FIELDS -------------------------------------------------------------------------------------------------
-        
+
         private uint _flags;
         
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
@@ -36,6 +37,17 @@ namespace Syroot.NintenTools.Bfres
         /// Gets or sets the path of the file which originally supplied the data of this instance.
         /// </summary>
         public string Path { get; set; }
+
+
+
+        /// <summary>
+        /// Gets or sets the <see cref="SkeletalAnimFlags"/> mode used to control looping and baked settings.
+        /// </summary>
+        public SkeletalAnimFlags FlagsAnimSettings
+        {
+            get { return (SkeletalAnimFlags)(_flags & _flagsMaskAnimSettings); }
+            set { _flags = _flags & ~_flagsMaskAnimSettings | (uint)value; }
+        }
 
         /// <summary>
         /// Gets or sets the <see cref="SkeletalAnimFlagsScale"/> mode used to store scaling values.
@@ -87,6 +99,8 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         public ResDict<UserData> UserData { get; set; }
 
+        ushort numBoneAnim = 0; 
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
@@ -95,11 +109,25 @@ namespace Syroot.NintenTools.Bfres
             Name = loader.LoadString();
             Path = loader.LoadString();
             _flags = loader.ReadUInt32();
-            FrameCount = loader.ReadInt32();
-            ushort numBoneAnim = loader.ReadUInt16();
-            ushort numUserData = loader.ReadUInt16();
-            int numCurve = loader.ReadInt32();
-            BakedSize = loader.ReadUInt32();
+
+            if (loader.ResFile.Version >= 0x03040000)
+            {
+                FrameCount = loader.ReadInt32();
+                numBoneAnim = loader.ReadUInt16();
+                ushort numUserData = loader.ReadUInt16();
+                int numCurve = loader.ReadInt32();
+                BakedSize = loader.ReadUInt32();
+            }
+            else
+            {
+                FrameCount = loader.ReadUInt16();
+                numBoneAnim = loader.ReadUInt16();
+                ushort numUserData = loader.ReadUInt16();
+                ushort numCurve = loader.ReadUInt16();
+                BakedSize = loader.ReadUInt32();
+                loader.Seek(4); //padding
+            }
+
             BoneAnims = loader.LoadList<BoneAnim>(numBoneAnim);
             BindSkeleton = loader.Load<Skeleton>();
             BindIndices = loader.LoadCustom(() => loader.ReadUInt16s(numBoneAnim));

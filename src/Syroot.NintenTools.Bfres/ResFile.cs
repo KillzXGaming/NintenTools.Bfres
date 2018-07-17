@@ -161,6 +161,9 @@ namespace Syroot.NintenTools.Bfres
             }
         }
 
+        public uint userPointer2;
+        public uint userCount;
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
@@ -199,6 +202,8 @@ namespace Syroot.NintenTools.Bfres
             ushort numSceneAnim = loader.ReadUInt16();
             ushort numExternalFile = loader.ReadUInt16();
             uint userPointer = loader.ReadUInt32();
+            userPointer2 = loader.ReadUInt32();
+            userCount = loader.ReadUInt32();
         }
         
         void IResData.Save(ResFileSaver saver)
@@ -207,7 +212,7 @@ namespace Syroot.NintenTools.Bfres
             
             saver.WriteSignature(_signature);
             saver.Write(Version);
-            saver.WriteEnum(ByteOrder, true);
+            saver.Write(ByteOrder, true);
             saver.Write((ushort)0x0010); // SizHeader
             saver.SaveFieldFileSize();
             saver.Write(Alignment);
@@ -238,6 +243,8 @@ namespace Syroot.NintenTools.Bfres
             saver.Write((ushort)SceneAnims.Count);
             saver.Write((ushort)ExternalFiles.Count);
             saver.Write(0); // UserPointer
+            saver.Write(userPointer2); // UserPointer
+            saver.Write(userCount); // UserPointer
         }
 
         // ---- METHODS (PRIVATE) --------------------------------------------------------------------------------------

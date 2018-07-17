@@ -66,7 +66,7 @@ namespace Syroot.NintenTools.Bfres
 
         void IResData.Load(ResFileLoader loader)
         {
-            String = loader.ReadString(StringDataFormat.ZeroTerminated, Encoding ?? loader.Encoding);
+            String = loader.ReadString(BinaryStringFormat.ZeroTerminated, Encoding ?? loader.Encoding);
         }
 
         void IResData.Save(ResFileSaver saver)

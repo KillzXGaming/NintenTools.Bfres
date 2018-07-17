@@ -91,6 +91,8 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         public float[,] Keys { get; set; }
 
+        public bool[] KeyStepBoolData { get; set; }
+
         private int ElementsPerKey
         {
             get
@@ -122,6 +124,8 @@ namespace Syroot.NintenTools.Bfres
             {
                 Delta = loader.ReadSingle();
             }
+
+
             Frames = loader.LoadCustom(() =>
             {
                 switch (FrameType)
@@ -146,44 +150,76 @@ namespace Syroot.NintenTools.Bfres
                         throw new ResException($"Invalid {nameof(FrameType)}.");
                 }
             });
-            Keys = loader.LoadCustom(() =>
+
+            //Bools use bits to store values. 
+            if (CurveType == AnimCurveType.StepBool)
             {
-                int elementsPerKey = ElementsPerKey;
-                float[,] keys = new float[numKey, elementsPerKey];
-                switch (KeyType)
+                int KeyBool = 0;
+
+                if (KeyType == AnimCurveKeyType.Single) //Read them as a int instead of a float
                 {
-                    case AnimCurveKeyType.Single:
-                        for (int i = 0; i < numKey; i++)
-                        {
-                            for (int j = 0; j < elementsPerKey; j++)
-                            {
-                                keys[i, j] = loader.ReadSingle();
-                            }
-                        }
-                        break;
-                    case AnimCurveKeyType.Int16:
-                        for (int i = 0; i < numKey; i++)
-                        {
-                            for (int j = 0; j < elementsPerKey; j++)
-                            {
-                                keys[i, j] = loader.ReadUInt16();
-                            }
-                        }
-                        break;
-                    case AnimCurveKeyType.SByte:
-                        for (int i = 0; i < numKey; i++)
-                        {
-                            for (int j = 0; j < elementsPerKey; j++)
-                            {
-                                keys[i, j] = loader.ReadSByte();
-                            }
-                        }
-                        break;
-                    default:
-                        throw new ResException($"Invalid {nameof(KeyType)}.");
+                    KeyBool = loader.LoadCustom(() => loader.ReadInt32());
                 }
-                return keys;
-            });
+                else if (KeyType == AnimCurveKeyType.Int16)
+                {
+                    KeyBool = loader.LoadCustom(() => loader.ReadInt16());
+                }
+                else if (KeyType == AnimCurveKeyType.SByte)
+                {
+                    KeyBool = loader.LoadCustom(() => loader.ReadSByte());
+                }
+
+                KeyStepBoolData = new bool[numKey];
+
+                for (int i = 0; i < numKey; i++)
+                {
+                    bool set = (KeyBool & 0x1) != 0;
+                    KeyBool >>= 1;
+
+                    KeyStepBoolData[i] = set;
+                }           
+            }
+            else
+            {
+                Keys = loader.LoadCustom(() =>
+                {
+                    int elementsPerKey = ElementsPerKey;
+                    float[,] keys = new float[numKey, elementsPerKey];
+                    switch (KeyType)
+                    {
+                        case AnimCurveKeyType.Single:
+                            for (int i = 0; i < numKey; i++)
+                            {
+                                for (int j = 0; j < elementsPerKey; j++)
+                                {
+                                    keys[i, j] = loader.ReadSingle();
+                                }
+                            }
+                            break;
+                        case AnimCurveKeyType.Int16:
+                            for (int i = 0; i < numKey; i++)
+                            {
+                                for (int j = 0; j < elementsPerKey; j++)
+                                {
+                                    keys[i, j] = loader.ReadInt16();
+                                }
+                            }
+                            break;
+                        case AnimCurveKeyType.SByte:
+                            for (int i = 0; i < numKey; i++)
+                            {
+                                for (int j = 0; j < elementsPerKey; j++)
+                                {
+                                    keys[i, j] = loader.ReadSByte();
+                                }
+                            }
+                            break;
+                        default:
+                            throw new ResException($"Invalid {nameof(KeyType)}.");
+                    }
+                    return keys;
+                });
+            }
         }
 
         void IResData.Save(ResFileSaver saver)

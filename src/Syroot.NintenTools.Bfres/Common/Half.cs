@@ -50,11 +50,11 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         public static readonly Half PositiveInfinity = new Half(0b01111100_00000000);
 
-        private static readonly uint[] _mantissaTable;
-        private static readonly uint[] _exponentTable;
-        private static readonly uint[] _offsetTable;
-        private static readonly ushort[] _baseTable;
-        private static readonly byte[] _shiftTable;
+        private static uint[] _mantissaTable;
+        private static uint[] _exponentTable;
+        private static uint[] _offsetTable;
+        private static ushort[] _baseTable;
+        private static byte[] _shiftTable;
 
         // ---- CONSTRUCTORS & DESTRUCTOR ------------------------------------------------------------------------------
 

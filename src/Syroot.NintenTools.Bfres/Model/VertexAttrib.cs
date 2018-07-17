@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using Syroot.NintenTools.Bfres.Core;
 using Syroot.NintenTools.Bfres.GX2;
 
@@ -51,7 +52,7 @@ namespace Syroot.NintenTools.Bfres
             saver.Write(BufferIndex);
             saver.Seek(1);
             saver.Write(Offset);
-            saver.WriteEnum(Format, true);
+            saver.Write(Format, true);
         }
     }
 }

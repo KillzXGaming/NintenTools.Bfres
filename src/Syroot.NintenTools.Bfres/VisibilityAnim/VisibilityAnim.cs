@@ -101,14 +101,31 @@ namespace Syroot.NintenTools.Bfres
 
         void IResData.Load(ResFileLoader loader)
         {
-            loader.CheckSignature(_signature);
+            if (loader.ResFile.Version >= 0x03040000)
+                loader.CheckSignature(_signature);
+            else
+                loader.ReadChars(4);
             Name = loader.LoadString();
             Path = loader.LoadString();
             _flags = loader.ReadUInt16();
-            ushort numUserData = loader.ReadUInt16();
-            FrameCount = loader.ReadInt32();
-            ushort numAnim = loader.ReadUInt16();
-            ushort numCurve = loader.ReadUInt16();
+            ushort numAnim = 0;
+            ushort numCurve = 0;
+            if (loader.ResFile.Version >= 0x03040000)
+            {
+                ushort numUserData = loader.ReadUInt16();
+                FrameCount = loader.ReadInt32();
+                numAnim = loader.ReadUInt16();
+                numCurve = loader.ReadUInt16();
+            }
+            else
+            {
+                FrameCount = loader.ReadInt16();
+                ushort unk = loader.ReadUInt16();
+                numCurve = loader.ReadUInt16();
+                numAnim = loader.ReadUInt16();
+                ushort numUserData = loader.ReadUInt16();
+            }
+
             BakedSize = loader.ReadUInt32();
             BindModel = loader.Load<Model>();
             BindIndices = loader.LoadCustom(() => loader.ReadUInt16s(numAnim));
@@ -137,7 +154,17 @@ namespace Syroot.NintenTools.Bfres
             saver.SaveString(Name);
             saver.SaveString(Path);
             saver.Write(_flags);
-            saver.Write((ushort)UserData.Count);
+            if (saver.ResFile.Version >= 0x03040000)
+            {
+
+            }
+            else
+            {
+
+            }
+
+
+                saver.Write((ushort)UserData.Count);
             saver.Write(FrameCount);
             saver.Write((ushort)Names.Count);
             saver.Write((ushort)Curves.Count);

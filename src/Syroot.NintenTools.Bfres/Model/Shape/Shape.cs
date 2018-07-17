@@ -47,10 +47,9 @@ namespace Syroot.NintenTools.Bfres
         public ushort VertexBufferIndex { get; set; }
 
         /// <summary>
-        /// Gets or sets the bounding radius/radii spanning the shape.
-        /// BOTW uses multiple per LOD mesh.
+        /// Gets or sets the bounding radius/radii spanning the shape. BOTW uses multiple per LOD mesh.
         /// </summary>
-        public float[] RadiusArray { get; set; }
+        public IList<float> RadiusArray { get; set; }
 
         /// <summary>
         /// Gets or sets the number of bones influencing the vertices stored in this buffer. 0 influences equal
@@ -91,6 +90,11 @@ namespace Syroot.NintenTools.Bfres
 
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
+        public Shape ShallowCopy()
+        {
+            return (Shape)this.MemberwiseClone();
+        }
+
         void IResData.Load(ResFileLoader loader)
         {
             loader.CheckSignature(_signature);
@@ -106,8 +110,8 @@ namespace Syroot.NintenTools.Bfres
             byte numKeyShape = loader.ReadByte();
             TargetAttribCount = loader.ReadByte();
             ushort numSubMeshBoundingNodes = loader.ReadUInt16(); // Padding in engine.
-            // BOTW has multiple radii per LOD.
-           if (loader.ResFile.Version >= 0x04050000)
+
+            if (loader.ResFile.Version >= 0x04050000)
             {
                 RadiusArray = loader.LoadCustom(() => loader.ReadSingles(numMesh));
             }
@@ -116,18 +120,22 @@ namespace Syroot.NintenTools.Bfres
                 RadiusArray = loader.ReadSingles(1);
             }
             VertexBuffer = loader.Load<VertexBuffer>();
-            
             Meshes = loader.LoadList<Mesh>(numMesh);
             SkinBoneIndices = loader.LoadCustom(() => loader.ReadUInt16s(numSkinBoneIndex));
             KeyShapes = loader.LoadDict<KeyShape>();
-            // BOTW has multiple boundings per LOD.
+            // TODO: At least BotW has more data following the Boundings, or that are no boundings at all.
             if (numSubMeshBoundingNodes == 0 && loader.ResFile.Version >= 0x04050000)
             {
                 // Compute the count differently if the node count was padding.
-                if (Meshes.Count > 1)
-                    SubMeshBoundings = loader.LoadCustom(() => loader.ReadBoundings(Meshes[0].SubMeshes.Count + 1 + numMesh));
-                else //If no LOD meshes then don't add + 1
+                if (numMesh == 1)      
                     SubMeshBoundings = loader.LoadCustom(() => loader.ReadBoundings(Meshes[0].SubMeshes.Count + numMesh));
+                if (numMesh == 2)
+                    SubMeshBoundings = loader.LoadCustom(() => loader.ReadBoundings(Meshes[0].SubMeshes.Count + Meshes[1].SubMeshes.Count + numMesh));
+                if (numMesh == 3)
+                    SubMeshBoundings = loader.LoadCustom(() => loader.ReadBoundings(Meshes[0].SubMeshes.Count + Meshes[1].SubMeshes.Count + Meshes[2].SubMeshes.Count + numMesh));
+                if (numMesh == 4)
+                    SubMeshBoundings = loader.LoadCustom(() => loader.ReadBoundings(Meshes[0].SubMeshes.Count + Meshes[1].SubMeshes.Count + Meshes[2].SubMeshes.Count + Meshes[3].SubMeshes.Count + numMesh));
+
                 SubMeshBoundingNodes = new List<BoundingNode>();
             }
             else if (numSubMeshBoundingNodes == 0)
@@ -149,7 +157,7 @@ namespace Syroot.NintenTools.Bfres
         {
             saver.WriteSignature(_signature);
             saver.SaveString(Name);
-            saver.WriteEnum(Flags, true);
+            saver.Write(Flags, true);
             saver.Write((ushort)saver.CurrentIndex);
             saver.Write(MaterialIndex);
             saver.Write(BoneIndex);
@@ -160,7 +168,7 @@ namespace Syroot.NintenTools.Bfres
             saver.Write((byte)KeyShapes.Count);
             saver.Write(TargetAttribCount);
             saver.Write((ushort)SubMeshBoundingNodes?.Count);
-           if (saver.ResFile.Version >= 0x04050000)
+            if (saver.ResFile.Version >= 0x04050000)
             {
                 saver.SaveCustom(RadiusArray, () => saver.Write(RadiusArray));
             }
