@@ -11,8 +11,17 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(RenderInfo) + " {" + nameof(Name) + "}")]
     public class RenderInfo : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RenderInfo"/> class.
+        /// </summary>
+        public RenderInfo()
+        {
+            Name = "";
+            SetValue(new int[0]);
+        }
+
         // ---- FIELDS -------------------------------------------------------------------------------------------------
-        
+
         private object _value;
         
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Syroot.NintenTools.Bfres.Core;
+using System.IO;
 
 namespace Syroot.NintenTools.Bfres
 {
@@ -11,6 +12,21 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(CameraAnim) + " {" + nameof(Name) + "}")]
     public class CameraAnim : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CameraAnim"/> class.
+        /// </summary>
+        public CameraAnim()
+        {
+            Name = "";
+            Flags = CameraAnimFlags.EulerZXY;
+            FrameCount = 0;
+            BakedSize = 0;
+
+            BaseData = new CameraAnimData();
+            Curves = new List<AnimCurve>();
+            UserData = new ResDict<UserData>();
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const string _signature = "FCAM";
@@ -55,6 +71,22 @@ namespace Syroot.NintenTools.Bfres
 
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
+        public void Import(string FileName, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
+        }
+
         void IResData.Load(ResFileLoader loader)
         {
             loader.CheckSignature(_signature);
@@ -70,7 +102,11 @@ namespace Syroot.NintenTools.Bfres
             BaseData = loader.LoadCustom(() => new CameraAnimData(loader));
             UserData = loader.LoadDict<UserData>();
         }
-        
+
+        internal long PosCurveArrayOffset;
+        internal long PosBaseDataOffset;
+        internal long PosUserDataOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.WriteSignature(_signature);
@@ -82,9 +118,9 @@ namespace Syroot.NintenTools.Bfres
             saver.Write((ushort)UserData.Count);
             saver.Write(BakedSize);
             saver.SaveString(Name);
-            saver.SaveList(Curves);
-            saver.SaveCustom(BaseData, () => BaseData.Save(saver));
-            saver.SaveDict(UserData);
+            PosCurveArrayOffset = saver.SaveOffsetPos();
+            PosBaseDataOffset = saver.SaveOffsetPos();
+            PosUserDataOffset = saver.SaveOffsetPos();
         }
     }
     

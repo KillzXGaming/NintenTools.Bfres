@@ -9,6 +9,18 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(ShaderParam) + " {" + nameof(Name) + "}")]
     public class ShaderParam : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ShaderParam"/> class.
+        /// </summary>
+        public ShaderParam()
+        {
+            Name = "";
+            Type = ShaderParamType.Float;
+            DataOffset = 0;
+            DependedIndex = 0;
+            DependIndex = 0;
+        }
+
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
 
         /// <summary>
@@ -59,53 +71,68 @@ namespace Syroot.NintenTools.Bfres
             }
         }
 
+        public uint callbackPointer { get; set; }
+        public int offset { get; set; }
+
+        public bool UsePadding;
+        public int PaddingLength;
+
         // TODO: Methods to retrieve the strongly-typed shader param value.
 
-        // ---- METHODS ------------------------------------------------------------------------------------------------
+        // ---- METHODS ------------C:\Users\Nathan\Documents\GitHub\NintenTools.Bfres-master\NintenTools.Bfres\src\Syroot.NintenTools.Bfres\ExternalFile\------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
         {
             Type = loader.ReadEnum<ShaderParamType>(true);
-            if (loader.ResFile.Version >= 0x03030000)
+            byte sizData = loader.ReadByte();
+
+            if (sizData != (byte)DataSize && sizData > DataSize)
             {
-                byte sizData = loader.ReadByte();
-                DataOffset = loader.ReadUInt16();
-                int offset = loader.ReadInt32(); // Uniform variable offset.
-                uint callbackPointer = loader.ReadUInt32();
+                UsePadding = true;
+                PaddingLength = sizData - (byte)DataSize;
+            }
+
+            DataOffset = loader.ReadUInt16();
+            offset = loader.ReadInt32(); // Uniform variable offset.
+            if (loader.ResFile.Version >= 0x03040000)
+            {
+                callbackPointer = loader.ReadUInt32();
                 DependedIndex = loader.ReadUInt16();
                 DependIndex = loader.ReadUInt16();
-                Name = loader.LoadString();
             }
-            else
+            else if (loader.ResFile.Version >= 0x03030000
+                && loader.ResFile.Version < 0x03040000)
             {
-                // GUESS
-                loader.Seek(1);
-                DataOffset = loader.ReadUInt16();
-                int offset = loader.ReadInt32(); // Uniform variable offset.
-                Name = loader.LoadString();
+                callbackPointer = loader.ReadUInt32();
+                DependedIndex = loader.ReadUInt16();
+                DependIndex = loader.ReadUInt16();
+                uint FMATOffset = loader.ReadUInt32(); //Why does this have this????
             }
+            Name = loader.LoadString();
         }
-        
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.Write(Type, true);
-            if (saver.ResFile.Version >= 0x03030000)
+            saver.Write((byte)(DataSize + PaddingLength));
+            saver.Write(DataOffset);
+            saver.Write(offset); // Offset
+            if (saver.ResFile.Version >= 0x03040000)
             {
-                saver.Write((byte)DataSize);
-                saver.Write(DataOffset);
-                saver.Write(-1); // Offset
-                saver.Write(0); // CallbackPointer
+                saver.Write(callbackPointer); // CallbackPointer
                 saver.Write(DependedIndex);
                 saver.Write(DependIndex);
-                saver.SaveString(Name);
             }
-            else
+            else if (saver.ResFile.Version >= 0x03030000
+                && saver.ResFile.Version < 0x03040000)
             {
-                saver.Seek(1);
-                saver.Write(DataOffset);
-                saver.Write(-1); // Offset
-                saver.SaveString(Name);
+                saver.Write(callbackPointer); // CallbackPointer
+                saver.Write(DependedIndex);
+                saver.Write(DependIndex);
+                saver.Write(0);
             }
+
+            saver.SaveString(Name);
         }
     }
 

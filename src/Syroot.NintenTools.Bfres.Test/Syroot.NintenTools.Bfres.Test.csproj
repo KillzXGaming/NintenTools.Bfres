@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>netcoreapp2.0</TargetFramework>
+		<TargetFramework>netcoreapp1.1</TargetFramework>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Syroot.NintenTools.Yaz0" Version="0.6.0" />

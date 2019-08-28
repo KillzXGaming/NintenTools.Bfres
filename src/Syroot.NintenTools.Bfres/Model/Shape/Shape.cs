@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Syroot.NintenTools.Bfres.Core;
@@ -11,6 +12,64 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(Shape) + " {" + nameof(Name) + "}")]
     public class Shape : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Shape"/> class.
+        /// </summary>
+        public Shape()
+        {
+            Name = "";
+            Flags = ShapeFlags.HasVertexBuffer;
+            MaterialIndex = 0;
+            BoneIndex = 0;
+            VertexBufferIndex = 0;
+            RadiusArray = new List<float>();
+            VertexSkinCount = 0;
+            TargetAttribCount = 0;
+            Meshes = new List<Mesh>();
+            SkinBoneIndices = new List<ushort>();
+            KeyShapes = new ResDict<KeyShape>();
+            SubMeshBoundings = new List<Bounding>();
+            SubMeshBoundingNodes = new List<BoundingNode>();
+            SubMeshBoundingIndices = new List<ushort>();
+            VertexBuffer = new VertexBuffer();
+        }
+
+        public void CreateEmptyMesh()
+        {
+            var mesh = new Mesh();
+            mesh.SetIndices(new uint[100], GX2.GX2IndexFormat.UInt16);
+            mesh.SubMeshes.Add(new SubMesh() { Count = 100 });
+            Meshes = new List<Mesh>();
+            Meshes.Add(mesh);
+
+            RadiusArray.Add(1.0f);
+
+            //Set boundings for mesh
+            SubMeshBoundings = new List<Bounding>();
+            SubMeshBoundings.Add(new Bounding()
+            {
+                Center = new Maths.Vector3F(0, 0, 0),
+                Extent = new Maths.Vector3F(50, 50, 50)
+            });
+            SubMeshBoundings.Add(new Bounding() //One more bounding for sub mesh
+            {
+                Center = new Maths.Vector3F(0, 0, 0),
+                Extent = new Maths.Vector3F(50, 50, 50)
+            });
+            SubMeshBoundingIndices = new List<ushort>();
+            SubMeshBoundingIndices.Add(0);
+            SubMeshBoundingNodes = new List<BoundingNode>();
+            SubMeshBoundingNodes.Add(new BoundingNode()
+            {
+                LeftChildIndex = 0,
+                NextSibling = 0,
+                SubMeshIndex = 0,
+                RightChildIndex = 0,
+                Unknown = 0,
+                SubMeshCount = 1,
+            });
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const string _signature = "FSHP";
@@ -90,6 +149,22 @@ namespace Syroot.NintenTools.Bfres
 
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
+        public void Import(string FileName, VertexBuffer vertexBuffer, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection(vertexBuffer);
+            }
+        }
+
+        public void Export(string FileName, VertexBuffer vertexBuffer, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection(vertexBuffer);
+            }
+        }
+
         public Shape ShallowCopy()
         {
             return (Shape)this.MemberwiseClone();
@@ -123,6 +198,9 @@ namespace Syroot.NintenTools.Bfres
             Meshes = loader.LoadList<Mesh>(numMesh);
             SkinBoneIndices = loader.LoadCustom(() => loader.ReadUInt16s(numSkinBoneIndex));
             KeyShapes = loader.LoadDict<KeyShape>();
+
+
+
             // TODO: At least BotW has more data following the Boundings, or that are no boundings at all.
             if (numSubMeshBoundingNodes == 0 && loader.ResFile.Version >= 0x04050000)
             {
@@ -152,7 +230,15 @@ namespace Syroot.NintenTools.Bfres
             }
             uint userPointer = loader.ReadUInt32();
         }
-        
+
+        internal long PosMeshArrayOffset;
+        internal long PosSkinBoneIndicesOffset;
+        internal long PosKeyShapesOffset;
+        internal long PosSubMeshBoundingNodesOffset;
+        internal long PosSubMeshBoundingsOffset;
+        internal long PosSubMeshBoundingsIndicesOffset;
+        internal long PosRadiusArrayOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.WriteSignature(_signature);
@@ -170,25 +256,25 @@ namespace Syroot.NintenTools.Bfres
             saver.Write((ushort)SubMeshBoundingNodes?.Count);
             if (saver.ResFile.Version >= 0x04050000)
             {
-                saver.SaveCustom(RadiusArray, () => saver.Write(RadiusArray));
+                PosRadiusArrayOffset = saver.SaveOffsetPos();
             }
             else
             {
                 saver.Write(RadiusArray);
             }
-            saver.Save(VertexBuffer);
-            saver.SaveList(Meshes);
-            saver.SaveCustom(SkinBoneIndices, () => saver.Write(SkinBoneIndices));
-            saver.SaveDict(KeyShapes);
+            saver.Write((uint)VertexBuffer.Position);
+            PosMeshArrayOffset = saver.SaveOffsetPos();
+            PosSkinBoneIndicesOffset = saver.SaveOffsetPos();
+            PosKeyShapesOffset = saver.SaveOffsetPos();
             if (SubMeshBoundingNodes.Count == 0)
             {
-                saver.SaveCustom(SubMeshBoundings, () => saver.Write(SubMeshBoundings));
+                PosSubMeshBoundingNodesOffset = saver.SaveOffsetPos();
             }
             else
             {
-                saver.SaveList(SubMeshBoundingNodes);
-                saver.SaveCustom(SubMeshBoundings, () => saver.Write(SubMeshBoundings));
-                saver.SaveCustom(SubMeshBoundingIndices, () => saver.Write(SubMeshBoundingIndices));
+                PosSubMeshBoundingNodesOffset = saver.SaveOffsetPos();
+                PosSubMeshBoundingsOffset = saver.SaveOffsetPos();
+                PosSubMeshBoundingsIndicesOffset = saver.SaveOffsetPos();
             }
             saver.Write(0); // UserPointer
         }

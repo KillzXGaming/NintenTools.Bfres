@@ -95,6 +95,11 @@ namespace Syroot.NintenTools.Bfres
         /// The translation amount of the transformation.
         /// </summary>
         public Vector2F Translation;
+
+        /// <summary>
+        /// Unkown space used in some games
+        /// </summary>
+        public byte[] unkown;
     }
 
     /// <summary>

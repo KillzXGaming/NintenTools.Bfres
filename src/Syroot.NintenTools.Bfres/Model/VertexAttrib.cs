@@ -12,6 +12,17 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(VertexAttrib) + " {" + nameof(Name) + "}")]
     public class VertexAttrib : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VertexAttrib"/> class.
+        /// </summary>
+        public VertexAttrib()
+        {
+            Name = "";
+            BufferIndex = 0;
+            Offset = 0;
+            Format = GX2AttribFormat.Format_32_32_32_32_Single;
+        }
+
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
 
         /// <summary>

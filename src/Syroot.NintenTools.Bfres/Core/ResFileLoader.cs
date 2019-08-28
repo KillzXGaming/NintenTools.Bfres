@@ -34,6 +34,15 @@ namespace Syroot.NintenTools.Bfres.Core
             _dataMap = new Dictionary<uint, IResData>();
         }
 
+        internal ResFileLoader(IResData resData, ResFile resFile, Stream stream, bool leaveOpen = false)
+    : base(stream, Encoding.ASCII, leaveOpen)
+        {
+            ByteOrder = ByteOrder.BigEndian;
+            ResFile = resFile;
+            _dataMap = new Dictionary<uint, IResData>();
+            ImportableFile = resData;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ResFileLoader"/> class from the file with the given
         /// <paramref name="fileName"/>.
@@ -45,6 +54,11 @@ namespace Syroot.NintenTools.Bfres.Core
         {
         }
 
+        internal ResFileLoader(IResData resData, ResFile resFile, string fileName)
+    : this(resData, resFile, new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+        }
+
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
 
         /// <summary>
@@ -52,7 +66,42 @@ namespace Syroot.NintenTools.Bfres.Core
         /// </summary>
         internal ResFile ResFile { get; }
 
+        internal IResData ImportableFile { get; }
+
         // ---- METHODS (INTERNAL) -------------------------------------------------------------------------------------
+
+        internal void ImportSection(IResData vertexBuffer = null)
+        {
+            ReadImportedFileHeader();
+
+            if (ImportableFile is Shape)
+            {
+                uint ShapeOffset = ReadUInt32();
+                uint VertexBufferOffset = ReadUInt32();
+
+                Seek(ShapeOffset, SeekOrigin.Begin);
+                ((IResData)ImportableFile).Load(this);
+
+                Seek(VertexBufferOffset, SeekOrigin.Begin);
+                ((IResData)vertexBuffer).Load(this);
+            }
+            else
+            {
+                ((IResData)ImportableFile).Load(this);
+            }
+        }
+
+        private void ReadImportedFileHeader()
+        {
+            Seek(8, SeekOrigin.Begin);
+            uint Version = ReadUInt32();
+            ushort ByteOrder = ReadUInt16();
+            ushort Alignment = ReadUInt16();
+            ResFile.SetVersionInfo(Version);
+            ResFile.Alignment = Alignment;
+
+            Seek(0x20, SeekOrigin.Begin);
+        }
 
         /// <summary>
         /// Starts deserializing the data from the <see cref="ResFile"/> root.
@@ -210,7 +259,7 @@ namespace Syroot.NintenTools.Bfres.Core
             string signature = ReadString(sizeof(uint), Encoding.ASCII);
             if (signature != validSignature)
             {
-                throw new ResException($"Invalid signature, expected '{validSignature}' but got '{signature}'.");
+                throw new ResException($"Invalid signature, expected '{validSignature}' but got '{signature}' at position {Position}.");
             }
         }
 

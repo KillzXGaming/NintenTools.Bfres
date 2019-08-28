@@ -44,12 +44,42 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         internal int BeginKeyShapeAnim { get; set; }
 
+        private ushort unk;
+
+        public void Import(string FileName, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
+        }
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
         {
-            ushort numCurve = loader.ReadUInt16();
-            ushort numKeyShapeAnim = loader.ReadUInt16();
+            ushort numCurve;
+            ushort numKeyShapeAnim;
+            if (loader.ResFile.Version >= 0x03040000)
+            {
+                numCurve = loader.ReadUInt16();
+                numKeyShapeAnim = loader.ReadUInt16();
+            }
+            else
+            {
+                numCurve = loader.ReadByte();
+                numKeyShapeAnim = loader.ReadByte();
+                unk = loader.ReadUInt16();
+            }
+
             BeginCurve = loader.ReadInt32();
             BeginKeyShapeAnim = loader.ReadInt32();
             Name = loader.LoadString();
@@ -57,17 +87,33 @@ namespace Syroot.NintenTools.Bfres
             Curves = loader.LoadList<AnimCurve>(numCurve);
             BaseDataList = loader.LoadCustom(() => loader.ReadSingles(numKeyShapeAnim - 1)); // Without base shape.
         }
-        
+
+
+        internal long PosKeyShapeAnimInfosOffset;
+        internal long PosCurvessOffset;
+        internal long PosBaseDataListOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
-            saver.Write((ushort)Curves.Count);
-            saver.Write((ushort)KeyShapeAnimInfos.Count);
+            if (saver.ResFile.Version >= 0x03040000)
+            {
+                saver.Write((ushort)Curves.Count);
+                saver.Write((ushort)KeyShapeAnimInfos.Count);
+            }
+            else
+            {
+                saver.Write((byte)Curves.Count);
+                saver.Write((byte)KeyShapeAnimInfos.Count);
+                saver.Write((ushort)unk);
+            }
+
+
             saver.Write(BeginCurve);
             saver.Write(BeginKeyShapeAnim);
             saver.SaveString(Name);
-            saver.SaveList(KeyShapeAnimInfos);
-            saver.SaveList(Curves);
-            saver.SaveCustom(BaseDataList, () => saver.Write(BaseDataList));
+            PosKeyShapeAnimInfosOffset = saver.SaveOffsetPos();
+            PosCurvessOffset = saver.SaveOffsetPos();
+            PosBaseDataListOffset = saver.SaveOffsetPos();
         }
     }
 }

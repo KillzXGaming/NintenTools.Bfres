@@ -10,8 +10,18 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(TexPatternMatAnim) + " {" + nameof(Name) + "}")]
     public class TexPatternMatAnim : IResData
     {
+        public TexPatternMatAnim()
+        {
+            Name = "";
+            PatternAnimInfos = new List<PatternAnimInfo>();
+            Curves = new List<AnimCurve>();
+            BaseDataList = new List<ushort>();
+            BeginCurve = 0;
+            BeginPatAnim = 0;
+        }
+
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
-        
+
         /// <summary>
         /// Gets the name of the animated <see cref="Material"/>.
         /// </summary>
@@ -44,6 +54,22 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         internal int BeginPatAnim { get; set; }
 
+        public void Import(string FileName, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
+        }
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
@@ -57,7 +83,11 @@ namespace Syroot.NintenTools.Bfres
             Curves = loader.LoadList<AnimCurve>(numCurve);
             BaseDataList = loader.LoadCustom(() => loader.ReadUInt16s(numPatAnim));
         }
-        
+
+        internal long PosPatternAnimInfosOffset;
+        internal long PosCurvessOffset;
+        internal long PosBaseDataListOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.Write((ushort)PatternAnimInfos.Count);
@@ -65,9 +95,9 @@ namespace Syroot.NintenTools.Bfres
             saver.Write(BeginCurve);
             saver.Write(BeginPatAnim);
             saver.SaveString(Name);
-            saver.SaveList(PatternAnimInfos);
-            saver.SaveList(Curves);
-            saver.SaveCustom(BaseDataList, () => saver.Write(BaseDataList));
+            PosPatternAnimInfosOffset = saver.SaveOffsetPos();
+            PosCurvessOffset = saver.SaveOffsetPos();
+            PosBaseDataListOffset = saver.SaveOffsetPos();
         }
     }
 }

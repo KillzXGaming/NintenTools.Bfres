@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Syroot.NintenTools.Bfres.Core;
+using Syroot.NintenTools.Bfres.Helpers;
 
 namespace Syroot.NintenTools.Bfres
 {
@@ -9,6 +10,41 @@ namespace Syroot.NintenTools.Bfres
     /// </summary>
     public class VertexBuffer : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Mesh"/> class.
+        /// </summary>
+        public VertexBuffer()
+        {
+            VertexSkinCount = 0;
+
+            Attributes = new ResDict<VertexAttrib>();
+            Buffers = new List<Buffer>();
+        }
+
+        public void CreateEmptyVertexBuffer()
+        {
+            VertexBufferHelper helper = new VertexBufferHelper(new VertexBuffer(), Syroot.BinaryData.ByteOrder.BigEndian);
+            List<VertexBufferHelperAttrib> atrib = new List<VertexBufferHelperAttrib>();
+
+            VertexBufferHelperAttrib position = new VertexBufferHelperAttrib();
+            position.Name = "_p0";
+            position.Data = new Maths.Vector4F[200];
+            position.Format = GX2.GX2AttribFormat.Format_32_32_32_Single;
+            atrib.Add(position);
+
+            VertexBufferHelperAttrib normal = new VertexBufferHelperAttrib();
+            normal.Name = "_n0";
+            normal.Data = new Maths.Vector4F[200];
+            normal.Format = GX2.GX2AttribFormat.Format_10_10_10_2_SNorm;
+            atrib.Add(normal);
+
+            helper.Attributes = atrib;
+            var VertexBuffer = helper.ToVertexBuffer();
+            VertexSkinCount = VertexBuffer.VertexSkinCount;
+            Attributes = VertexBuffer.Attributes;
+            Buffers = VertexBuffer.Buffers;
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const string _signature = "FVTX";
@@ -75,8 +111,15 @@ namespace Syroot.NintenTools.Bfres
             uint userPointer = loader.ReadUInt32();
         }
 
+        internal long AttributeOffset;
+        internal long AttributeDictOffset;
+        internal long BufferOffset;
+        internal long Position;
+
         void IResData.Save(ResFileSaver saver)
         {
+            Position = saver.Position;
+
             saver.WriteSignature(_signature);
             saver.Write((byte)Attributes.Count);
             saver.Write((byte)Buffers.Count);
@@ -84,9 +127,9 @@ namespace Syroot.NintenTools.Bfres
             saver.Write(VertexCount);
             saver.Write(VertexSkinCount);
             saver.Seek(3);
-            saver.SaveList(Attributes.Values);
-            saver.SaveDict(Attributes);
-            saver.SaveList(Buffers);
+            AttributeOffset = saver.SaveOffsetPos();
+            AttributeDictOffset = saver.SaveOffsetPos();
+            BufferOffset = saver.SaveOffsetPos();
             saver.Write(0); // UserPointer
         }
     }

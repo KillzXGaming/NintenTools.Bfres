@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Syroot.Maths;
 using Syroot.NintenTools.Bfres.Core;
+using System.IO;
 
 namespace Syroot.NintenTools.Bfres
 {
@@ -9,6 +10,18 @@ namespace Syroot.NintenTools.Bfres
     /// </summary>
     public class Skeleton : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Skeleton"/> class.
+        /// </summary>
+        public Skeleton()
+        {
+            MatrixToBoneList = new List<ushort>();
+            InverseModelMatrices = new List<Matrix3x4>();
+            Bones = new ResDict<Bone>();
+            FlagsRotation = SkeletonFlagsRotation.EulerXYZ;
+            FlagsScaling = SkeletonFlagsScaling.Maya;
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const string _signature = "FSKL";
@@ -46,6 +59,45 @@ namespace Syroot.NintenTools.Bfres
 
         public IList<Matrix3x4> InverseModelMatrices { get; set; }
 
+        public IList<ushort> GetSmoothIndices()
+        {
+            List<ushort> indices = new List<ushort>();
+            foreach (Bone bone in Bones.Values)
+            {
+                if (bone.SmoothMatrixIndex != -1)
+                    indices.Add((ushort)bone.SmoothMatrixIndex);
+            }
+            return indices;
+        }
+
+        public IList<ushort> GetRigidIndices()
+        {
+            List<ushort> indices = new List<ushort>();
+            foreach (Bone bone in Bones.Values)
+            {
+                if (bone.RigidMatrixIndex != -1)
+                    indices.Add((ushort)bone.RigidMatrixIndex);
+            }
+            return indices;
+        }
+
+        public void Import(string FileName, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
+        }
+
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
@@ -59,22 +111,44 @@ namespace Syroot.NintenTools.Bfres
             Bones = loader.LoadDict<Bone>();
             uint ofsBoneList = loader.ReadOffset(); // Only load dict.
             MatrixToBoneList = loader.LoadCustom(() => loader.ReadUInt16s((numSmoothMatrix + numRigidMatrix)));
-            InverseModelMatrices = loader.LoadCustom(() => loader.ReadMatrix3x4s(numSmoothMatrix));
+            if (loader.ResFile.Version >= 0x03040000)
+                InverseModelMatrices = loader.LoadCustom(() => loader.ReadMatrix3x4s(numSmoothMatrix));
             uint userPointer = loader.ReadUInt32();
         }
+
+        internal long PosBoneDictOffset;
+        internal long PosBoneArrayOffset;
+        internal long PosMatrixToBoneListOffset;
+        internal long PosInverseModelMatricesOffset;
 
         void IResData.Save(ResFileSaver saver)
         {
             saver.WriteSignature(_signature);
             saver.Write(_flags);
             saver.Write((ushort)Bones.Count);
-            saver.Write((ushort)InverseModelMatrices.Count); // NumSmoothMatrix
-            saver.Write((ushort)(MatrixToBoneList.Count - InverseModelMatrices.Count)); // NumRigidMatrix
+            if (saver.ResFile.Version >= 0x03040000)
+            {
+                saver.Write((ushort)InverseModelMatrices.Count); // NumSmoothMatrix
+                saver.Write((ushort)(MatrixToBoneList.Count - InverseModelMatrices.Count)); // NumRigidMatrix
+            }
+            else
+            {
+                int numRididMatrix = 0;
+                foreach (Bone bn in Bones.Values)
+                {
+                    if (bn.RigidMatrixIndex != -1)
+                        numRididMatrix++;
+                }
+
+                saver.Write((ushort)(MatrixToBoneList.Count - numRididMatrix)); // NumRigidMatrix
+                saver.Write((ushort)(numRididMatrix)); // NumRigidMatrix
+            }
             saver.Seek(2);
-            saver.SaveDict(Bones);
-            saver.SaveList(Bones.Values);
-            saver.SaveCustom(MatrixToBoneList, () => saver.Write(MatrixToBoneList));
-            saver.SaveCustom(InverseModelMatrices, () => saver.Write(InverseModelMatrices));
+            PosBoneDictOffset = saver.SaveOffsetPos();
+            PosBoneArrayOffset = saver.SaveOffsetPos();
+            PosMatrixToBoneListOffset = saver.SaveOffsetPos();
+            if (saver.ResFile.Version >= 0x03040000)
+                PosInverseModelMatricesOffset = saver.SaveOffsetPos();
             saver.Write(0); // UserPointer
         }
     }

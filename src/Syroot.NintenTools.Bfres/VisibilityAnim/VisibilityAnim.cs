@@ -12,6 +12,23 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(VisibilityAnim) + " {" + nameof(Name) + "}")]
     public class VisibilityAnim : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VisibilityAnim"/> class.
+        /// </summary>
+        public VisibilityAnim()
+        {
+            Name = "";
+            Path = "";
+            Flags = 0;
+            FrameCount = 0;
+            BakedSize = 0;
+            Curves = new List<AnimCurve>();
+            BindIndices = new ushort[0];
+            Names = new List<string>();
+            BaseDataList = new bool[0];
+            UserData = new ResDict<UserData>();
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const string _signature = "FVIS";
@@ -97,6 +114,22 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         public ResDict<UserData> UserData { get; set; }
 
+        public void Import(string FileName, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
+        }
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
@@ -116,17 +149,17 @@ namespace Syroot.NintenTools.Bfres
                 FrameCount = loader.ReadInt32();
                 numAnim = loader.ReadUInt16();
                 numCurve = loader.ReadUInt16();
+                BakedSize = loader.ReadUInt32();
             }
             else
             {
                 FrameCount = loader.ReadInt16();
-                ushort unk = loader.ReadUInt16();
-                numCurve = loader.ReadUInt16();
                 numAnim = loader.ReadUInt16();
+                numCurve = loader.ReadUInt16();
                 ushort numUserData = loader.ReadUInt16();
+                BakedSize = loader.ReadUInt32();
+                int padding2 = loader.ReadInt16();
             }
-
-            BakedSize = loader.ReadUInt32();
             BindModel = loader.Load<Model>();
             BindIndices = loader.LoadCustom(() => loader.ReadUInt16s(numAnim));
             Names = loader.LoadCustom(() => loader.LoadStrings(numAnim)); // Offset to name list.
@@ -147,7 +180,14 @@ namespace Syroot.NintenTools.Bfres
             });
             UserData = loader.LoadDict<UserData>();
         }
-        
+
+        internal long PosBindModelOffset;
+        internal long PosBindIndicesOffset;
+        internal long PosNamesOffset;
+        internal long PosCurvesOffset;
+        internal long PosBaseDataOffset;
+        internal long PosUserDataOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.WriteSignature(_signature);
@@ -156,37 +196,28 @@ namespace Syroot.NintenTools.Bfres
             saver.Write(_flags);
             if (saver.ResFile.Version >= 0x03040000)
             {
-
+                saver.Write((ushort)UserData.Count);
+                saver.Write(FrameCount);
+                saver.Write((ushort)Names.Count);
+                saver.Write((ushort)Curves.Count);
+                saver.Write(BakedSize);
             }
             else
             {
-
+                saver.Write((ushort)FrameCount);
+                saver.Write((ushort)Names.Count);
+                saver.Write((ushort)Curves.Count);
+                saver.Write((ushort)UserData.Count);
+                saver.Write(BakedSize);
+                saver.Write((ushort)0);
             }
 
-
-                saver.Write((ushort)UserData.Count);
-            saver.Write(FrameCount);
-            saver.Write((ushort)Names.Count);
-            saver.Write((ushort)Curves.Count);
-            saver.Write(BakedSize);
-            saver.Save(BindModel);
-            saver.SaveCustom(BindIndices, () => saver.Write(BindIndices));
-            saver.SaveStrings(Names);
-            saver.SaveList(Curves);
-            saver.SaveCustom(BaseDataList, () =>
-            {
-                int i = 0;
-                while (i < BaseDataList.Length)
-                {
-                    byte b = 0;
-                    for (int j = 0; j < 8 && i < BaseDataList.Length; j++)
-                    {
-                        b.SetBit(j, BaseDataList[i++]);
-                    }
-                    saver.Write(b);
-                }
-            });
-            saver.SaveDict(UserData);
+            PosBindModelOffset = saver.SaveOffsetPos();
+            PosBindIndicesOffset = saver.SaveOffsetPos();
+            PosNamesOffset = saver.SaveOffsetPos();
+            PosCurvesOffset = saver.SaveOffsetPos();
+            PosBaseDataOffset = saver.SaveOffsetPos();
+            PosUserDataOffset = saver.SaveOffsetPos();
         }
     }
     

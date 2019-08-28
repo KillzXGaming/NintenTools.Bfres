@@ -4,6 +4,19 @@ namespace Syroot.NintenTools.Bfres
 {
     public class ShaderAssign : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ShaderAssign"/> class.
+        /// </summary>
+        public ShaderAssign()
+        {
+            ShaderArchiveName = "";
+            ShadingModelName = "";
+            Revision = 0;
+            AttribAssigns = new ResDict<ResString>();
+            SamplerAssigns = new ResDict<ResString>();
+            ShaderOptions = new ResDict<ResString>();
+        }
+
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
 
         public string ShaderArchiveName { get; set; }
@@ -32,7 +45,11 @@ namespace Syroot.NintenTools.Bfres
             SamplerAssigns = loader.LoadDict<ResString>();
             ShaderOptions = loader.LoadDict<ResString>();
         }
-        
+
+        internal long PosAttribAssigns;
+        internal long PosSamplerAssigns;
+        internal long PosShaderOptions;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.SaveString(ShaderArchiveName);
@@ -41,9 +58,9 @@ namespace Syroot.NintenTools.Bfres
             saver.Write((byte)AttribAssigns.Count);
             saver.Write((byte)SamplerAssigns.Count);
             saver.Write((ushort)ShaderOptions.Count);
-            saver.SaveDict(AttribAssigns);
-            saver.SaveDict(SamplerAssigns);
-            saver.SaveDict(ShaderOptions);
+            PosAttribAssigns = saver.SaveOffsetPos();
+            PosSamplerAssigns = saver.SaveOffsetPos();
+            PosShaderOptions = saver.SaveOffsetPos();
         }
     }
 }

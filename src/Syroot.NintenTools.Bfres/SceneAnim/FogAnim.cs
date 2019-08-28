@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Syroot.NintenTools.Bfres.Core;
+using System.IO;
 
 namespace Syroot.NintenTools.Bfres
 {
@@ -9,8 +10,25 @@ namespace Syroot.NintenTools.Bfres
     /// Represents an FCAM section in a <see cref="SceneAnim"/> subfile, storing animations controlling fog settings.
     /// </summary>
     [DebuggerDisplay(nameof(FogAnim) + " {" + nameof(Name) + "}")]
-    public class FogAnim : IResData
+    public class FogAnim : IResData, IFilePortable
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FogAnim"/> class.
+        /// </summary>
+        public FogAnim()
+        {
+            Name = "";
+            DistanceAttnFuncName = "";
+            Flags = 0;
+            FrameCount = 0;
+            BakedSize = 0;
+            DistanceAttnFuncIndex = 0;
+
+            BaseData = new FogAnimData();
+            Curves = new List<AnimCurve>();
+            UserData = new ResDict<UserData>();
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const string _signature = "FFOG";
@@ -62,8 +80,25 @@ namespace Syroot.NintenTools.Bfres
         /// Gets or sets customly attached <see cref="UserData"/> instances.
         /// </summary>
         public ResDict<UserData> UserData { get; set; }
-        
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
+
+
+        public void Import(string FileName, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
+        }
 
         void IResData.Load(ResFileLoader loader)
         {
@@ -80,7 +115,12 @@ namespace Syroot.NintenTools.Bfres
             BaseData = loader.LoadCustom(() => new FogAnimData(loader));
             UserData = loader.LoadDict<UserData>();
         }
-        
+
+
+        internal long PosCurveArrayOffset;
+        internal long PosBaseDataOffset;
+        internal long PosUserDataOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.WriteSignature(_signature);
@@ -92,9 +132,9 @@ namespace Syroot.NintenTools.Bfres
             saver.Write(BakedSize);
             saver.SaveString(Name);
             saver.SaveString(DistanceAttnFuncName);
-            saver.SaveList(Curves);
-            saver.SaveCustom(BaseData, () => BaseData.Save(saver));
-            saver.SaveDict(UserData);
+            PosCurveArrayOffset = saver.SaveOffsetPos();
+            PosBaseDataOffset = saver.SaveOffsetPos();
+            PosUserDataOffset = saver.SaveOffsetPos();
         }
     }
     

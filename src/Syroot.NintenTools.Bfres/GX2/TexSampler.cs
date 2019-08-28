@@ -34,6 +34,19 @@ namespace Syroot.NintenTools.Bfres.GX2
         /// </summary>
         public TexSampler()
         {
+            ClampX = GX2TexClamp.Wrap;
+            ClampY = GX2TexClamp.Wrap;
+            ClampZ = GX2TexClamp.Clamp;
+            MagFilter = GX2TexXYFilterType.Bilinear;
+            MinFilter = GX2TexXYFilterType.Bilinear;
+            ZFilter = GX2TexZFilterType.Linear;
+            MipFilter = GX2TexMipFilterType.Linear;
+            MaxAnisotropicRatio = GX2TexAnisoRatio.OneToOne;
+            BorderType = GX2TexBorderType.ClearBlack;
+            DepthCompareFunc = GX2CompareFunction.Never;
+            LodBias = 0;
+            MinLod = 0;
+            MaxLod = 13;
         }
 
         internal TexSampler(uint[] values)

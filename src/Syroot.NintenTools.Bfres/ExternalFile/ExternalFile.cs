@@ -32,9 +32,13 @@ namespace Syroot.NintenTools.Bfres
 
         void IResData.Load(ResFileLoader loader)
         {
-            uint ofsData = loader.ReadOffset();
-            uint sizData = loader.ReadUInt32();
-            Data = loader.LoadCustom(() => loader.ReadBytes((int)sizData), ofsData);
+            if (loader.ResFile.Version >= 0x02040000)
+            {
+                uint ofsData = loader.ReadOffset();
+                uint sizData = loader.ReadUInt32();
+                Data = loader.LoadCustom(() => loader.ReadBytes((int)sizData), ofsData);
+            }
+   
         }
         
         void IResData.Save(ResFileSaver saver)

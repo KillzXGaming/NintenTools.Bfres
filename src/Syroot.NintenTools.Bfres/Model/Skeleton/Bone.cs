@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Syroot.Maths;
 using Syroot.NintenTools.Bfres.Core;
+using System.IO;
 
 namespace Syroot.NintenTools.Bfres
 {
@@ -12,6 +13,29 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(Bone) + " {" + nameof(Name) + "}")]
     public class Bone : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Bone"/> class.
+        /// </summary>
+        public Bone()
+        {
+            Name = "";
+            UserData = new ResDict<UserData>();
+            ParentIndex = ushort.MaxValue;
+            SmoothMatrixIndex = -1;
+            RigidMatrixIndex = -1;
+            BillboardIndex = ushort.MaxValue;
+
+            Scale = new Vector3F(1, 1, 1);
+            Rotation = new Vector4F(0, 0, 0, 0);
+            Position = new Vector3F(0, 0, 0);
+
+            Flags = BoneFlags.Visible;
+            FlagsRotation = BoneFlagsRotation.EulerXYZ;
+            FlagsBillboard = BoneFlagsBillboard.None;
+            FlagsTransform = BoneFlagsTransform.None;
+            FlagsTransformCumulative = BoneFlagsTransformCumulative.None;
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const uint _flagsMask = 0b00000000_00000000_00000000_00000001;
@@ -109,6 +133,196 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         public ResDict<UserData> UserData { get; set; }
 
+
+        /// <summary>
+        /// Gets or sets the inverse matrix (Only used in bfres verson v3.3.X.X and below)
+        /// </summary>
+        public Matrix3x4 InverseMatrix { get; set; }
+
+        public bool TransformIdentity
+        {
+            get { return FlagsTransform.HasFlag(BoneFlagsTransform.Identity); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneFlagsTransform.Identity;
+                else
+                    FlagsTransform &= ~BoneFlagsTransform.Identity;
+            }
+        }
+
+        public bool TransformRotateTranslateZero
+        {
+            get { return FlagsTransform.HasFlag(BoneFlagsTransform.RotateTranslateZero); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneFlagsTransform.RotateTranslateZero;
+                else
+                    FlagsTransform &= ~BoneFlagsTransform.RotateTranslateZero;
+            }
+        }
+
+        public bool TransformRotateZero
+        {
+            get { return FlagsTransform.HasFlag(BoneFlagsTransform.RotateZero); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneFlagsTransform.RotateZero;
+                else
+                    FlagsTransform &= ~BoneFlagsTransform.RotateZero;
+            }
+        }
+
+        public bool TransformScaleOne
+        {
+            get { return FlagsTransform.HasFlag(BoneFlagsTransform.ScaleOne); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneFlagsTransform.ScaleOne;
+                else
+                    FlagsTransform &= ~BoneFlagsTransform.ScaleOne;
+            }
+        }
+
+        public bool TransformScaleUniform
+        {
+            get { return FlagsTransform.HasFlag(BoneFlagsTransform.ScaleUniform); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneFlagsTransform.ScaleUniform;
+                else
+                    FlagsTransform &= ~BoneFlagsTransform.ScaleUniform;
+            }
+        }
+
+        public bool TransformScaleVolumeOne
+        {
+            get { return FlagsTransform.HasFlag(BoneFlagsTransform.ScaleVolumeOne); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneFlagsTransform.ScaleVolumeOne;
+                else
+                    FlagsTransform &= ~BoneFlagsTransform.ScaleVolumeOne;
+            }
+        }
+
+        public bool TransformTranslateZero
+        {
+            get { return FlagsTransform.HasFlag(BoneFlagsTransform.TranslateZero); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneFlagsTransform.TranslateZero;
+                else
+                    FlagsTransform &= ~BoneFlagsTransform.TranslateZero;
+            }
+        }
+
+        public bool TransformCumulativeIdentity
+        {
+            get { return FlagsTransformCumulative.HasFlag(BoneFlagsTransformCumulative.Identity); }
+            set
+            {
+                if (value == true)
+                    FlagsTransformCumulative |= BoneFlagsTransformCumulative.Identity;
+                else
+                    FlagsTransformCumulative &= ~BoneFlagsTransformCumulative.Identity;
+            }
+        }
+
+        public bool TransformCumulativeRotateTranslateZero
+        {
+            get { return FlagsTransformCumulative.HasFlag(BoneFlagsTransformCumulative.RotateTranslateZero); }
+            set
+            {
+                if (value == true)
+                    FlagsTransformCumulative |= BoneFlagsTransformCumulative.RotateTranslateZero;
+                else
+                    FlagsTransformCumulative &= ~BoneFlagsTransformCumulative.RotateTranslateZero;
+            }
+        }
+
+        public bool TransformCumulativeRotateZero
+        {
+            get { return FlagsTransformCumulative.HasFlag(BoneFlagsTransformCumulative.RotateZero); }
+            set
+            {
+                if (value == true)
+                    FlagsTransformCumulative |= BoneFlagsTransformCumulative.RotateZero;
+                else
+                    FlagsTransformCumulative &= ~BoneFlagsTransformCumulative.RotateZero;
+            }
+        }
+
+        public bool TransformCumulativeScaleOne
+        {
+            get { return FlagsTransformCumulative.HasFlag(BoneFlagsTransformCumulative.ScaleOne); }
+            set
+            {
+                if (value == true)
+                    FlagsTransformCumulative |= BoneFlagsTransformCumulative.ScaleOne;
+                else
+                    FlagsTransformCumulative &= ~BoneFlagsTransformCumulative.ScaleOne;
+            }
+        }
+
+        public bool TransformCumulativeScaleUniform
+        {
+            get { return FlagsTransformCumulative.HasFlag(BoneFlagsTransformCumulative.ScaleUniform); }
+            set
+            {
+                if (value == true)
+                    FlagsTransformCumulative |= BoneFlagsTransformCumulative.ScaleUniform;
+                else
+                    FlagsTransformCumulative &= ~BoneFlagsTransformCumulative.ScaleUniform;
+            }
+        }
+
+        public bool TransformCumulativeScaleVolumeOne
+        {
+            get { return FlagsTransformCumulative.HasFlag(BoneFlagsTransformCumulative.ScaleVolumeOne); }
+            set
+            {
+                if (value == true)
+                    FlagsTransformCumulative |= BoneFlagsTransformCumulative.ScaleVolumeOne;
+                else
+                    FlagsTransformCumulative &= ~BoneFlagsTransformCumulative.ScaleVolumeOne;
+            }
+        }
+
+        public bool TransformCumulativeTranslateZero
+        {
+            get { return FlagsTransformCumulative.HasFlag(BoneFlagsTransformCumulative.TranslateZero); }
+            set
+            {
+                if (value == true)
+                    FlagsTransformCumulative |= BoneFlagsTransformCumulative.TranslateZero;
+                else
+                    FlagsTransformCumulative &= ~BoneFlagsTransformCumulative.TranslateZero;
+            }
+        }
+
+        public void Import(string FileName, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
+        }
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
@@ -125,7 +339,14 @@ namespace Syroot.NintenTools.Bfres
             Rotation = loader.ReadVector4F();
             Position = loader.ReadVector3F();
             UserData = loader.LoadDict<UserData>();
+
+            if (loader.ResFile.Version < 0x03040000)
+            {
+                InverseMatrix = loader.ReadMatrix3x4();
+            }
         }
+
+        internal long PosUserDataOffset;
 
         void IResData.Save(ResFileSaver saver)
         {
@@ -140,7 +361,12 @@ namespace Syroot.NintenTools.Bfres
             saver.Write(Scale);
             saver.Write(Rotation);
             saver.Write(Position);
-            saver.SaveDict(UserData);
+            PosUserDataOffset = saver.SaveOffsetPos();
+
+            if (saver.ResFile.Version < 0x03040000)
+            {
+                saver.Write(InverseMatrix);
+            }
         }
     }
 

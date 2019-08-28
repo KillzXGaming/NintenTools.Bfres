@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Syroot.NintenTools.Bfres.Core;
+using System.IO;
 
 namespace Syroot.NintenTools.Bfres
 {
@@ -12,6 +13,27 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(Material) + " {" + nameof(Name) + "}")]
     public class Material : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Material"/> class.
+        /// </summary>
+        public Material()
+        {
+            Name = "";
+            Flags = MaterialFlags.Visible;
+
+            ShaderAssign = new ShaderAssign();
+
+            RenderInfos = new ResDict<RenderInfo>();
+            TextureRefs = new List<TextureRef>();
+            Samplers = new ResDict<Sampler>();
+            UserData = new ResDict<UserData>();
+            ShaderParams = new ResDict<ShaderParam>();
+
+            ShaderParamData = new byte[0];
+            VolatileFlags = new byte[0];
+
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const string _signature = "FMAT";
@@ -69,9 +91,21 @@ namespace Syroot.NintenTools.Bfres
 
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
-        public Material ShallowCopy()
+
+        public void Import(string FileName, ResFile ResFile)
         {
-            return (Material)this.MemberwiseClone();
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
         }
 
         void IResData.Load(ResFileLoader loader)
@@ -101,7 +135,19 @@ namespace Syroot.NintenTools.Bfres
             VolatileFlags = loader.LoadCustom(() => loader.ReadBytes((int)Math.Ceiling(numShaderParam / 8f)));
             uint userPointer = loader.ReadUInt32();
         }
-        
+
+        internal long PosRenderInfoOffset;
+        internal long PosRenderStateOffset;
+        internal long PosShaderAssignOffset;
+        internal long PosTextureRefsOffset;
+        internal long PosSamplersOffset;
+        internal long PosSamplerDictOffset;
+        internal long PosShaderParamsOffset;
+        internal long PosShaderParamDictOffset;
+        internal long PosShaderParamDataOffset;
+        internal long PosUserDataMaterialOffset;
+        internal long PosVolatileFlagsOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.WriteSignature(_signature);
@@ -112,21 +158,24 @@ namespace Syroot.NintenTools.Bfres
             saver.Write((byte)Samplers.Count);
             saver.Write((byte)TextureRefs.Count);
             saver.Write((ushort)ShaderParams.Count);
-            saver.Write((ushort)VolatileFlags.Length);
+            if (saver.ResFile.Version >= 0x03030000)
+                saver.Write((ushort)VolatileFlags.Length);
+            else
+                saver.Write((ushort)TextureRefs.Count);
             saver.Write((ushort)ShaderParamData.Length);
             saver.Write((ushort)0); // SizParamRaw
             saver.Write((ushort)UserData.Count);
-            saver.SaveDict(RenderInfos);
-            saver.Save(RenderState);
-            saver.Save(ShaderAssign);
-            saver.SaveList(TextureRefs);
-            saver.SaveList(Samplers.Values);
-            saver.SaveDict(Samplers);
-            saver.SaveList(ShaderParams.Values);
-            saver.SaveDict(ShaderParams);
-            saver.SaveCustom(ShaderParamData, () => saver.Write(ShaderParamData));
-            saver.SaveDict(UserData);
-            saver.SaveCustom(VolatileFlags, () => saver.Write(VolatileFlags));
+            PosRenderInfoOffset = saver.SaveOffsetPos();
+            PosRenderStateOffset = saver.SaveOffsetPos();
+            PosShaderAssignOffset = saver.SaveOffsetPos();
+            PosTextureRefsOffset = saver.SaveOffsetPos();
+            PosSamplersOffset = saver.SaveOffsetPos();
+            PosSamplerDictOffset = saver.SaveOffsetPos();
+            PosShaderParamsOffset = saver.SaveOffsetPos();
+            PosShaderParamDictOffset = saver.SaveOffsetPos();
+            PosUserDataMaterialOffset = saver.SaveOffsetPos();
+            if (saver.ResFile.Version >= 0x03030000)
+                PosVolatileFlagsOffset = saver.SaveOffsetPos();
             saver.Write(0); // UserPointer
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Syroot.NintenTools.Bfres.Core;
@@ -11,6 +12,23 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(BoneAnim) + " {" + nameof(Name) + "}")]
     public class BoneAnim : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BoneAnim"/> class.
+        /// </summary>
+        public BoneAnim()
+        {
+            Name = "";
+            _flags = 0;
+            FlagsBase = 0;
+            BeginRotate = 0;
+            BeginTranslate = 0;
+            BeginBaseTranslate = 0;
+
+            Curves = new List<AnimCurve>();
+            BaseData = new BoneAnimData();
+            BeginCurve = 0;
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const uint _flagsMaskBase = 0b00000000_00000000_00000000_00111000;
@@ -27,6 +45,7 @@ namespace Syroot.NintenTools.Bfres
         /// Gets or sets a set of flags indicating whether initial transformation values exist in
         /// <see cref="BaseData"/>.
         /// </summary>
+        [Browsable(false)]
         public BoneAnimFlagsBase FlagsBase
         {
             get { return (BoneAnimFlagsBase)(_flags & _flagsMaskBase); }
@@ -36,6 +55,7 @@ namespace Syroot.NintenTools.Bfres
         /// <summary>
         /// Gets or sets a set of flags indicating whether curves animating the corresponding transformation exist.
         /// </summary>
+        [Browsable(false)]
         public BoneAnimFlagsCurve FlagsCurve
         {
             get { return (BoneAnimFlagsCurve)(_flags & _flagsMaskCurve); }
@@ -45,6 +65,7 @@ namespace Syroot.NintenTools.Bfres
         /// <summary>
         /// Gets or sets a set of flags controlling how to transform bones.
         /// </summary>
+        [Browsable(false)]
         public BoneAnimFlagsTransform FlagsTransform
         {
             get { return (BoneAnimFlagsTransform)(_flags & _flagsMaskTransform); }
@@ -54,39 +75,236 @@ namespace Syroot.NintenTools.Bfres
         /// <summary>
         /// Gets or sets the name of the animated <see cref="Bone"/>.
         /// </summary>
+        [Browsable(true)]
+        [Category("Bone")]
         public string Name { get; set; }
 
         /// <summary>
         /// Gets or sets a field with unknown purpose.
         /// </summary>
+        [Browsable(true)]
+        [Category("Bone")]
+        [DisplayName("Begin Rotate")]
         public byte BeginRotate { get; set; }
 
         /// <summary>
         /// Gets or sets a field with unknown purpose.
         /// </summary>
+        [Browsable(true)]
+        [Category("Bone")]
+        [DisplayName("Begin Translate")]
         public byte BeginTranslate { get; set; }
 
         /// <summary>
         /// Gets or sets the element offset in the <see cref="BaseData"/> to an initial translation.
         /// </summary>
+        [Browsable(true)]
+        [Category("Bone")]
+        [DisplayName("Begin Base Translate")]
         public byte BeginBaseTranslate { get; set; }
+
+        /// <summary>
+        /// Gets the index of the first <see cref="AnimCurve"/> relative to all curves of the parent
+        /// <see cref="SkeletalAnim.BoneAnims"/> instances.
+        /// </summary>
+        [Browsable(true)]
+        [Category("Bone")]
+        [DisplayName("Begin Curve")]
+        internal int BeginCurve { get; set; }
 
         /// <summary>
         /// Gets or sets <see cref="AnimCurve"/> instances animating properties of objects stored in this section.
         /// </summary>
+        [Browsable(false)]
         public IList<AnimCurve> Curves { get; set; }
 
         /// <summary>
         /// Gets or sets initial transformation values. Only stores specific transformations according to
         /// <see cref="FlagsBase"/>.
         /// </summary>
+        [Browsable(false)]
         public BoneAnimData BaseData { get; set; }
 
-        /// <summary>
-        /// Gets the index of the first <see cref="AnimCurve"/> relative to all curves of the parent
-        /// <see cref="SkeletalAnim.BoneAnims"/> instances.
-        /// </summary>
-        internal int BeginCurve { get; set; }
+        [Browsable(true)]
+        [Category("Base Data")]
+        [DisplayName("Use Translation")]
+        public bool UseTranslation
+        {
+            get { return FlagsBase.HasFlag(BoneAnimFlagsBase.Translate); }
+            set
+            {
+                if (value == true)
+                    FlagsBase |= BoneAnimFlagsBase.Translate;
+                else
+                    FlagsBase &= ~BoneAnimFlagsBase.Translate;
+            }
+        }
+
+        [Browsable(true)]
+        [Category("Base Data")]
+        [DisplayName("Use Scale")]
+        public bool UseScale
+        {
+            get { return FlagsBase.HasFlag(BoneAnimFlagsBase.Scale); }
+            set
+            {
+                if (value == true)
+                    FlagsBase |= BoneAnimFlagsBase.Scale;
+                else
+                    FlagsBase &= ~BoneAnimFlagsBase.Scale;
+            }
+        }
+
+        [Browsable(true)]
+        [Category("Base Data")]
+        [DisplayName("Use Rotation")]
+        public bool UseRotation
+        {
+            get { return FlagsBase.HasFlag(BoneAnimFlagsBase.Rotate); }
+            set
+            {
+                if (value == true)
+                    FlagsBase |= BoneAnimFlagsBase.Rotate;
+                else
+                    FlagsBase &= ~BoneAnimFlagsBase.Rotate;
+            }
+        }
+
+        [Browsable(true)]
+        [Category("Transform Modes")]
+        [DisplayName("Identity")]
+        public bool ApplyIdentity
+        {
+            get { return FlagsTransform.HasFlag(BoneAnimFlagsTransform.Identity); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneAnimFlagsTransform.Identity;
+                else
+                    FlagsTransform &= ~BoneAnimFlagsTransform.Identity;
+            }
+        }
+
+        [Browsable(true)]
+        [Category("Transform Modes")]
+        [DisplayName("Rotate Translate Zero")]
+        public bool ApplyRotateTranslateZero
+        {
+            get { return FlagsTransform.HasFlag(BoneAnimFlagsTransform.RotateTranslateZero); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneAnimFlagsTransform.RotateTranslateZero;
+                else
+                    FlagsTransform &= ~BoneAnimFlagsTransform.RotateTranslateZero;
+            }
+        }
+
+        [Browsable(true)]
+        [Category("Transform Modes")]
+        [DisplayName("Rotate Zero")]
+        public bool ApplyRotateZero
+        {
+            get { return FlagsTransform.HasFlag(BoneAnimFlagsTransform.RotateZero); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneAnimFlagsTransform.RotateZero;
+                else
+                    FlagsTransform &= ~BoneAnimFlagsTransform.RotateZero;
+            }
+        }
+
+        [Browsable(true)]
+        [Category("Transform Modes")]
+        [DisplayName("Scale One")]
+        public bool ApplyScaleOne
+        {
+            get { return FlagsTransform.HasFlag(BoneAnimFlagsTransform.ScaleOne); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneAnimFlagsTransform.ScaleOne;
+                else
+                    FlagsTransform &= ~BoneAnimFlagsTransform.ScaleOne;
+            }
+        }
+
+        [Browsable(true)]
+        [Category("Transform Modes")]
+        [DisplayName("Scale Volume One")]
+        public bool ApplyScaleVolumeOne
+        {
+            get { return FlagsTransform.HasFlag(BoneAnimFlagsTransform.ScaleVolumeOne); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneAnimFlagsTransform.ScaleVolumeOne;
+                else
+                    FlagsTransform &= ~BoneAnimFlagsTransform.ScaleVolumeOne;
+            }
+        }
+
+        [Browsable(true)]
+        [Category("Transform Modes")]
+        [DisplayName("Scale Uniform")]
+        public bool ApplyScaleUniform
+        {
+            get { return FlagsTransform.HasFlag(BoneAnimFlagsTransform.ScaleUniform); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneAnimFlagsTransform.ScaleUniform;
+                else
+                    FlagsTransform &= ~BoneAnimFlagsTransform.ScaleUniform;
+            }
+        }
+
+        [Browsable(true)]
+        [Category("Transform Modes")]
+        [DisplayName("Segment Scale Compensate")]
+        public bool ApplySegmentScaleCompensate
+        {
+            get { return FlagsTransform.HasFlag(BoneAnimFlagsTransform.SegmentScaleCompensate); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneAnimFlagsTransform.SegmentScaleCompensate;
+                else
+                    FlagsTransform &= ~BoneAnimFlagsTransform.SegmentScaleCompensate;
+            }
+        }
+
+        [Browsable(true)]
+        [Category("Transform Modes")]
+        [DisplayName("Translate Zero")]
+        public bool ApplyTranslateZero
+        {
+            get { return FlagsTransform.HasFlag(BoneAnimFlagsTransform.TranslateZero); }
+            set
+            {
+                if (value == true)
+                    FlagsTransform |= BoneAnimFlagsTransform.TranslateZero;
+                else
+                    FlagsTransform &= ~BoneAnimFlagsTransform.TranslateZero;
+            }
+        }
+
+        public void Import(string FileName, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
+        }
 
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
@@ -97,12 +315,16 @@ namespace Syroot.NintenTools.Bfres
             BeginRotate = loader.ReadByte();
             BeginTranslate = loader.ReadByte();
             byte numCurve = loader.ReadByte();
-            BeginBaseTranslate = loader.ReadByte();
-            BeginCurve = loader.ReadInt32();
+            BeginBaseTranslate = loader.ReadByte(); 
+            BeginCurve = loader.ReadByte();
+            loader.Seek(3);
             Curves = loader.LoadList<AnimCurve>(numCurve);
             BaseData = loader.LoadCustom(() => new BoneAnimData(loader, FlagsBase));
         }
-        
+
+        internal long PosCurvesOffset;
+        internal long PosBaseDataListOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.Write(_flags);
@@ -111,9 +333,10 @@ namespace Syroot.NintenTools.Bfres
             saver.Write(BeginTranslate);
             saver.Write((byte)Curves.Count);
             saver.Write(BeginBaseTranslate);
-            saver.Write(BeginCurve);
-            saver.SaveList(Curves);
-            saver.SaveCustom(BaseData, () => BaseData.Save(saver, FlagsBase));
+            saver.Write((byte)BeginCurve);
+            saver.Seek(3);
+            PosCurvesOffset = saver.SaveOffsetPos();
+            PosBaseDataListOffset = saver.SaveOffsetPos();
         }
     }
 

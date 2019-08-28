@@ -11,8 +11,18 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(UserData) + " {" + nameof(Name) + "}")]
     public class UserData : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserData"/> class.
+        /// </summary>
+        public UserData()
+        {
+            Name = "";
+            SetValue(new int[0]);
+        }
+
+
         // ---- FIELDS -------------------------------------------------------------------------------------------------
-        
+
         private object _value;
         
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
@@ -77,6 +87,7 @@ namespace Syroot.NintenTools.Bfres
         /// <param name="value">The value to store.</param>
         public void SetValue(int[] value)
         {
+            Type = UserDataType.Int32;
             _value = value;
         }
 
@@ -87,6 +98,7 @@ namespace Syroot.NintenTools.Bfres
         /// <param name="value">The value to store.</param>
         public void SetValue(float[] value)
         {
+            Type = UserDataType.Single;
             _value = value;
         }
 
@@ -111,6 +123,7 @@ namespace Syroot.NintenTools.Bfres
         /// <param name="value">The value to store.</param>
         public void SetValue(byte[] value)
         {
+            Type = UserDataType.Byte;
             _value = value;
         }
 

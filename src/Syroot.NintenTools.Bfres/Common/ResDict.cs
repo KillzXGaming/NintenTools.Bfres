@@ -594,6 +594,26 @@ namespace Syroot.NintenTools.Bfres
         private bool Lookup(IResData value, out Node node, out int index, bool throwOnFail = true)
         {
             int i = 0;
+
+            if (value is ResString)
+            {
+                foreach (Node foundNode in Nodes)
+                {
+                    if (foundNode.Value is ResString)
+                    {
+                        if (((ResString)(foundNode.Value)).String == ((ResString)value).String)
+                        {
+                            node = foundNode;
+                            index = i;
+                            return true;
+                        }
+                    }
+                    i++;
+                }
+            }
+
+
+            i = 0;
             foreach (Node foundNode in Nodes)
             {
                 if (foundNode.Value == value)

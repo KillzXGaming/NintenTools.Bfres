@@ -13,6 +13,23 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(ShapeAnim) + " {" + nameof(Name) + "}")]
     public class ShapeAnim : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ShapeAnim"/> class.
+        /// </summary>
+        public ShapeAnim()
+        {
+            Name = "";
+            Path = "";
+            Flags = 0;
+            BindModel = new Model();
+            BindIndices = new ushort[0];
+            VertexShapeAnims = new List<VertexShapeAnim>();
+            FrameCount = 0;
+            BakedSize = 0;
+            BindIndices = new ushort[0];
+            UserData = new ResDict<UserData>();
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const string _signature = "FSHA";
@@ -67,6 +84,22 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         public ResDict<UserData> UserData { get; set; }
 
+        public void Import(string FileName, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
+        }
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
@@ -75,36 +108,73 @@ namespace Syroot.NintenTools.Bfres
             Name = loader.LoadString();
             Path = loader.LoadString();
             Flags = loader.ReadEnum<ShapeAnimFlags>(true);
-            ushort numUserData = loader.ReadUInt16();
-            FrameCount = loader.ReadInt32();
-            ushort numVertexShapeAnim = loader.ReadUInt16();
-            ushort numKeyShapeAnim = loader.ReadUInt16();
-            ushort numCurve = loader.ReadUInt16();
-            loader.Seek(2);
-            BakedSize = loader.ReadUInt32();
+
+            ushort numUserData;
+            ushort numVertexShapeAnim;
+            ushort numKeyShapeAnim;
+            ushort numCurve;
+            if (loader.ResFile.Version >= 0x03040000)
+            {
+                numUserData = loader.ReadUInt16();
+                FrameCount = loader.ReadInt32();
+                numVertexShapeAnim = loader.ReadUInt16();
+                numKeyShapeAnim = loader.ReadUInt16();
+                numCurve = loader.ReadUInt16();
+                loader.Seek(2);
+                BakedSize = loader.ReadUInt32();
+            }
+            else
+            {
+                FrameCount = loader.ReadUInt16();
+                numVertexShapeAnim = loader.ReadUInt16();
+                numKeyShapeAnim = loader.ReadUInt16();
+                numUserData = loader.ReadUInt16();
+                numCurve = loader.ReadUInt16();
+                BakedSize = loader.ReadUInt32();
+            }  
+
             BindModel = loader.Load<Model>();
             BindIndices = loader.LoadCustom(() => loader.ReadUInt16s(numVertexShapeAnim));
             VertexShapeAnims = loader.LoadList<VertexShapeAnim>(numVertexShapeAnim);
             UserData = loader.LoadDict<UserData>();
         }
-        
+
+        internal long PosBindModelOffset;
+        internal long PosBindIndicesOffset;
+        internal long PosVertexShapeAnims;
+        internal long PosUserDataOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.WriteSignature(_signature);
             saver.SaveString(Name);
             saver.SaveString(Path);
             saver.Write(Flags, true);
-            saver.Write((ushort)UserData.Count);
-            saver.Write(FrameCount);
-            saver.Write((ushort)VertexShapeAnims.Count);
-            saver.Write((ushort)VertexShapeAnims.Sum((x) => x.KeyShapeAnimInfos.Count));
-            saver.Write((ushort)VertexShapeAnims.Sum((x) => x.Curves.Count));
-            saver.Seek(2);
-            saver.Write(BakedSize);
-            saver.Save(BindModel);
-            saver.SaveCustom(BindIndices, () => saver.Write(BindIndices));
-            saver.SaveList(VertexShapeAnims);
-            saver.SaveDict(UserData);
+
+            if (saver.ResFile.Version >= 0x03040000)
+            {
+                saver.Write((ushort)UserData.Count);
+                saver.Write(FrameCount);
+                saver.Write((ushort)VertexShapeAnims.Count);
+                saver.Write((ushort)VertexShapeAnims.Sum((x) => x.KeyShapeAnimInfos.Count));
+                saver.Write((ushort)VertexShapeAnims.Sum((x) => x.Curves.Count));
+                saver.Seek(2);
+                saver.Write(BakedSize);
+            }
+            else
+            {
+                saver.Write((ushort)FrameCount);
+                saver.Write((ushort)VertexShapeAnims.Count);
+                saver.Write((ushort)VertexShapeAnims.Sum((x) => x.KeyShapeAnimInfos.Count));
+                saver.Write((ushort)UserData.Count);
+                saver.Write((ushort)VertexShapeAnims.Sum((x) => x.Curves.Count));
+                saver.Write(BakedSize);
+            }
+
+            PosBindModelOffset = saver.SaveOffsetPos();
+            PosBindIndicesOffset = saver.SaveOffsetPos();
+            PosVertexShapeAnims = saver.SaveOffsetPos();
+            PosUserDataOffset = saver.SaveOffsetPos();
         }
     }
 

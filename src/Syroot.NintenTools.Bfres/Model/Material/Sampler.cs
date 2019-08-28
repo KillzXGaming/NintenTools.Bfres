@@ -11,6 +11,14 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(Sampler) + " {" + nameof(Name) + "}")]
     public class Sampler : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Sampler"/> class.
+        /// </summary>
+        public Sampler()
+        {
+    
+        }
+
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
 
         /// <summary>

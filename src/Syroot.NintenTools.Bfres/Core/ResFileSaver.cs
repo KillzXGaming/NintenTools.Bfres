@@ -46,6 +46,14 @@ namespace Syroot.NintenTools.Bfres.Core
             ResFile = resFile;
         }
 
+        internal ResFileSaver(IResData resData, ResFile resFile, Stream stream, bool leaveOpen)
+    : base(stream, Encoding.ASCII, leaveOpen)
+        {
+            ByteOrder = ByteOrder.BigEndian;
+            ExportableData = resData;
+            ResFile = resFile;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ResFileSaver"/> class for the file with the given
         /// <paramref name="fileName"/>.
@@ -57,6 +65,12 @@ namespace Syroot.NintenTools.Bfres.Core
         {
         }
 
+        internal ResFileSaver(IResData resData, ResFile resFile, string fileName)
+    : this(resData, resFile, new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.Read), false)
+        {
+        }
+
+
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
 
         /// <summary>
@@ -65,12 +79,164 @@ namespace Syroot.NintenTools.Bfres.Core
         internal ResFile ResFile { get; }
 
         /// <summary>
+        /// Gets the saved <see cref="Bfres.IResData"/> instance used for exporting data.
+        /// </summary>
+        internal IResData ExportableData { get; }
+
+        /// <summary>
         /// Gets the current index when writing lists or dicts.
         /// </summary>
         internal int CurrentIndex { get; private set; }
 
         // ---- METHODS (INTERNAL) -------------------------------------------------------------------------------------
 
+        internal void WriteHeader(string SubSection, string Magic, int Offset = 32)
+        {
+            ByteOrder = ByteOrder.BigEndian;
+
+            // Create queues fetching the names for the string pool and data blocks to store behind the headers.
+            _savedItems = new List<ItemEntry>();
+            _savedStrings = new SortedDictionary<string, StringEntry>(ResStringComparer.Instance);
+            _savedBlocks = new Dictionary<object, BlockEntry>();
+
+            //Write the header
+            Write((byte)127);
+            Write(Encoding.ASCII.GetBytes(SubSection));
+            Write(ResFile.Version);
+            WriteSignature(Magic);
+            Write((int)(Offset - Position));
+            Write(0);
+            Write(0);
+            ByteOrder = ByteOrder.BigEndian;
+        }
+
+        internal void WriteEndOfExportData()
+        {
+            _ofsStringPool = 0;
+
+            SaveEntries();
+
+            // Satisfy offsets, strings, and data blocks.
+            WriteOffsets();
+
+
+            WriteStrings();
+            WriteBlocks();
+
+            Flush();
+        }
+
+        internal void ExportSection(ShaderParamAnimType ParamAnimType)
+        {
+            if (ParamAnimType == ShaderParamAnimType.ShaderParameter)
+            {
+                WriteHeader("fresSUB", "FSHUPRMA");
+                ((IResData)ExportableData).Save(this);
+            }
+            else if (ParamAnimType == ShaderParamAnimType.Color)
+            {
+                WriteHeader("fresSUB", "FSHUCLRA");
+                ((IResData)ExportableData).Save(this);
+
+            }
+            else if (ParamAnimType == ShaderParamAnimType.TextureSRT)
+            {
+                WriteHeader("fresSUB", "FSHUSRTA");
+                ((IResData)ExportableData).Save(this);
+            }
+        }
+
+        internal void ExportSection(IResData VertexBuffer = null)
+        {
+            if (ExportableData is Model)
+            {
+                WriteHeader("fresSUB", "FMDL\0\0\0\0");
+                ((IResData)ExportableData).Save(this);
+            }
+            else if (ExportableData is Skeleton)
+            {
+                WriteHeader("fresSUB", "FSKL\0\0\0\0");
+                ((IResData)ExportableData).Save(this);
+            }
+            else if (ExportableData is Bone)
+            {
+                WriteHeader("fmdlSUB", "FSKL\0\0\0\0");
+                WriteSignature("BONE");
+                ((IResData)ExportableData).Save(this);
+            }
+            else if (ExportableData is Material)
+            {
+                WriteHeader("fmdlSUB", "FMAT\0\0\0\0");
+                ((IResData)ExportableData).Save(this);
+            }
+            else if (ExportableData is Shape)
+            {
+                WriteHeader("fmdlSUB", "FSHP\0\0\0\0");
+
+                long ShapeOffPos = Position;
+                Write(0);
+                long VertexBufferOffPos = Position;
+                Write(0);
+
+                var offset = Position;
+                using (TemporarySeek(ShapeOffPos, SeekOrigin.Begin))
+                {
+                    Write(offset);
+                }
+                ((IResData)ExportableData).Save(this);
+
+                offset = Position;
+                using (TemporarySeek(VertexBufferOffPos, SeekOrigin.Begin))
+                {
+                    Write(offset);
+                }
+                ((IResData)VertexBuffer).Save(this);
+
+            }
+            else if (ExportableData is SkeletalAnim)
+            {
+                WriteHeader("fresSUB", "FSKA\0\0\0\0");
+                ((IResData)ExportableData).Save(this);
+            }
+            else if (ExportableData is TexPatternAnim)
+            {
+                WriteHeader("fresSUB", "FTXP\0\0\0\0");
+                ((IResData)ExportableData).Save(this);
+            }
+            else if (ExportableData is SceneAnim)
+            {
+                WriteHeader("fresSUB", "FSCN\0\0\0\0");
+                ((IResData)ExportableData).Save(this);
+            }
+            else if (ExportableData is CameraAnim)
+            {
+                WriteHeader("fresSUB", "FSCNFCAM");
+                ((IResData)ExportableData).Save(this);
+            }
+            else if (ExportableData is LightAnim)
+            {
+                WriteHeader("fresSUB", "FSCNFLIT");
+                ((IResData)ExportableData).Save(this);
+            }
+            else if (ExportableData is FogAnim)
+            {
+                WriteHeader("fresSUB", "FSCNFFOG");
+                ((IResData)ExportableData).Save(this);
+            }
+            else if (ExportableData is Texture)
+            {
+                WriteHeader("fresSUB", "FTEX\0\0\0\0");
+                ((IResData)ExportableData).Save(this);
+            }
+            else if (ExportableData is VisibilityAnim)
+            {
+                WriteHeader("fresSUB", "FVIS\0\0\0\0");
+                ((IResData)ExportableData).Save(this);
+            }
+
+            WriteEndOfExportData();
+        }
+     
         /// <summary>
         /// Starts serializing the data from the <see cref="ResFile"/> root.
         /// </summary>
@@ -83,12 +249,49 @@ namespace Syroot.NintenTools.Bfres.Core
             _savedBlocks = new Dictionary<object, BlockEntry>();
 
             // Store the headers recursively and satisfy offsets to them, then the string pool and data blocks.
+            SaveResFile();
+            SaveEntries();
+
+            // Satisfy offsets, strings, and data blocks.
+            WriteOffsets();
+            WriteStrings();
+            WriteBlocks();
+            // Save final file size into root header at the provided offset.
+            Position = _ofsFileSize;
+            Write((uint)BaseStream.Length);
+            Flush();
+        }
+
+        private void SaveResFile()
+        {
             ((IResData)ResFile).Save(this);
+
+            //Setup subfiles first
+            if (ResFile.Models.Count > 0)
+            {
+                WriteOffset(ResFile.ModelOffset);
+                ((IResData)ResFile.Models).Save(this);
+            }
+            if (ResFile.SkeletalAnims.Count > 0)
+            {
+                WriteOffset(ResFile.SkeletonAnimationOffset);
+                ((IResData)ResFile.SkeletalAnims).Save(this);
+            }
+        }
+
+        private void SaveEntries()
+        {
+
             // Store all queued items. Iterate via index as subsequent calls append to the list.
             for (int i = 0; i < _savedItems.Count; i++)
             {
+                if (_savedItems[i].Target != null)
+                {
+                    // Ignore if it has already been written (list or dict elements).
+                    continue;
+                }
+
                 ItemEntry entry = _savedItems[i];
-                if (entry.Target != null) continue; // Ignore if it has already been written (list or dict elements).
 
                 Align(4);
                 switch (entry.Type)
@@ -113,7 +316,7 @@ namespace Syroot.NintenTools.Bfres.Core
                             }
                         }
                         break;
-                        
+
                     case ItemEntryType.Dict:
                     case ItemEntryType.ResData:
                         entry.Target = (uint)Position;
@@ -127,17 +330,27 @@ namespace Syroot.NintenTools.Bfres.Core
                         break;
                 }
             }
- 
-            // Satisfy offsets, strings, and data blocks.
-            WriteOffsets();
-            WriteStrings();
-            WriteBlocks();
-            // Save final file size into root header at the provided offset.
-            Position = _ofsFileSize;
-            Write((uint)BaseStream.Length);
-            Flush();
         }
-        
+
+        internal void WriteOffset(long offset)
+        {
+            //The offset to point to
+            long target = Position; 
+
+            //Seek to where to write the offset itself and use relative position
+            using (TemporarySeek((uint)offset, SeekOrigin.Begin))
+            {
+                Write((uint)(target - offset));
+            }
+        }
+
+        internal long SaveOffsetPos()
+        {
+            long OffsetPosition = Position;
+            Write(0); //Fill offset space for later
+            return OffsetPosition;
+        }
+
         /// <summary>
         /// Reserves space for an offset to the <paramref name="resData"/> written later.
         /// </summary>
@@ -395,12 +608,15 @@ namespace Syroot.NintenTools.Bfres.Core
             }
             BaseStream.SetLength(Position); // Workaround to make last alignment expand the file if nothing follows.
 
-            // Save string pool offset and size in main file header.
-            uint stringPoolSize = (uint)(Position - stringPoolOffset);
-            using (TemporarySeek(_ofsStringPool, SeekOrigin.Begin))
+            if (_ofsStringPool != 0)
             {
-                Write(stringPoolSize);
-                Write((int)(stringPoolOffset - Position));
+                // Save string pool offset and size in main file header.
+                uint stringPoolSize = (uint)(Position - stringPoolOffset);
+                using (TemporarySeek(_ofsStringPool, SeekOrigin.Begin))
+                {
+                    Write(stringPoolSize);
+                    Write((int)(stringPoolOffset - Position));
+                }
             }
         }
 
@@ -426,7 +642,8 @@ namespace Syroot.NintenTools.Bfres.Core
             {
                 foreach (ItemEntry entry in _savedItems)
                 {
-                    SatisfyOffsets(entry.Offsets, entry.Target.Value);
+                    if (entry.Target != null)
+                        SatisfyOffsets(entry.Offsets, entry.Target.Value);
                 }
             }
         }

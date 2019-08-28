@@ -9,6 +9,16 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(PatternAnimInfo) + " {" + nameof(Name) + "}")]
     public class PatternAnimInfo : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ShaderParamAnim"/> class.
+        /// </summary>
+        public PatternAnimInfo()
+        {
+            CurveIndex = -1;
+            SubBindIndex = -1;
+            Name = "";
+        }
+
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
 
         /// <summary>

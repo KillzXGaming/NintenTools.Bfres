@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using Syroot.NintenTools.Bfres.Core;
 
 namespace Syroot.NintenTools.Bfres
@@ -10,6 +11,20 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(Model) + " {" + nameof(Name) + "}")]
     public class Model : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Model"/> class.
+        /// </summary>
+        public Model()
+        {
+            Name = "";
+            Path = "";
+            Skeleton = new Skeleton();
+            VertexBuffers = new List<VertexBuffer>();
+            Shapes = new ResDict<Shape>();
+            Materials = new ResDict<Material>();
+            UserData = new ResDict<UserData>();
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const string _signature = "FMDL";
@@ -71,6 +86,22 @@ namespace Syroot.NintenTools.Bfres
             }
         }
 
+        public void Import(string FileName, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
+        }
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
@@ -88,26 +119,39 @@ namespace Syroot.NintenTools.Bfres
             ushort numMaterial = loader.ReadUInt16();
             ushort numUserData = loader.ReadUInt16();
             uint totalVertexCount = loader.ReadUInt32();
-            uint userPointer = loader.ReadUInt32();
+
+            if (loader.ResFile.Version >= 0x03030000)
+            {
+                uint userPointer = loader.ReadUInt32();
+            }
 
             VertexBuffers = loader.LoadList<VertexBuffer>(numVertexBuffer, ofsVertexBufferList);
         }
-        
+
+        internal long SkeletonOffset;
+        internal long VertexBufferOffset;
+        internal long ShapeOffset;
+        internal long MaterialsOffset;
+        internal long PosUserDataOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.WriteSignature(_signature);
             saver.SaveString(Name);
             saver.SaveString(Path);
-            saver.Save(Skeleton);
-            saver.SaveList(VertexBuffers);
-            saver.SaveDict(Shapes);
-            saver.SaveDict(Materials);
-            saver.SaveDict(UserData);
+            SkeletonOffset = saver.SaveOffsetPos();
+            VertexBufferOffset = saver.SaveOffsetPos();
+            ShapeOffset = saver.SaveOffsetPos();
+            MaterialsOffset = saver.SaveOffsetPos();
+            PosUserDataOffset = saver.SaveOffsetPos();
             saver.Write((ushort)VertexBuffers.Count);
             saver.Write((ushort)Shapes.Count);
             saver.Write((ushort)Materials.Count);
             saver.Write((ushort)UserData.Count);
-            saver.Write(TotalVertexCount);
+            if (saver.ResFile.Version >= 0x03030000)
+            {
+                saver.Write(TotalVertexCount);
+            }
             saver.Write(0); // UserPointer
         }
     }

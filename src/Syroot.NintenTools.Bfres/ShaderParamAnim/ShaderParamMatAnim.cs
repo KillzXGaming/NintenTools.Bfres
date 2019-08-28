@@ -11,6 +11,20 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(ShaderParamMatAnim) + " {" + nameof(Name) + "}")]
     public class ShaderParamMatAnim : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ShaderParamMatAnim"/> class.
+        /// </summary>
+        public ShaderParamMatAnim()
+        {
+            Name = "";
+
+            ParamAnimInfos = new List<ParamAnimInfo>();
+            Curves = new List<AnimCurve>();
+            Constants = new List<AnimConstant>();
+            BeginCurve = 0;
+            BeginParamAnim = 0;
+        }
+
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
 
         /// <summary>
@@ -42,6 +56,22 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         internal int BeginParamAnim { get; set; }
 
+        public void Import(string FileName, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
+        }
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
@@ -57,7 +87,11 @@ namespace Syroot.NintenTools.Bfres
             Curves = loader.LoadList<AnimCurve>(numCurve);
             Constants = loader.LoadCustom(() => loader.ReadAnimConstants(numConstant));
         }
-        
+
+        internal long PosParamAnimInfos;
+        internal long PosCurveOffset;
+        internal long PosConstantsOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.Write((ushort)ParamAnimInfos.Count);
@@ -67,9 +101,9 @@ namespace Syroot.NintenTools.Bfres
             saver.Write(BeginCurve);
             saver.Write(BeginParamAnim);
             saver.SaveString(Name);
-            saver.SaveList(ParamAnimInfos);
-            saver.SaveList(Curves);
-            saver.SaveCustom(Constants, () => saver.Write(Constants));
+            PosParamAnimInfos = saver.SaveOffsetPos();
+            PosCurveOffset = saver.SaveOffsetPos();
+            PosConstantsOffset = saver.SaveOffsetPos();
         }
     }
 }

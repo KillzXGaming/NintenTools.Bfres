@@ -14,6 +14,17 @@ namespace Syroot.NintenTools.Bfres
     /// </summary>
     public class Mesh : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Mesh"/> class.
+        /// </summary>
+        public Mesh()
+        {
+            PrimitiveType = GX2PrimitiveType.Triangles;
+            IndexFormat = GX2IndexFormat.UInt16;
+            SubMeshes = new List<SubMesh>();
+            IndexBuffer = new Buffer();
+        }
+
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
 
         /// <summary>
@@ -181,6 +192,9 @@ namespace Syroot.NintenTools.Bfres
             FirstVertex = loader.ReadUInt32();
         }
 
+        internal long PosSubMeshesOffset;
+        internal long PosBufferOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.Write(PrimitiveType, true);
@@ -188,8 +202,8 @@ namespace Syroot.NintenTools.Bfres
             saver.Write(IndexCount);
             saver.Write((ushort)SubMeshes.Count);
             saver.Seek(2);
-            saver.SaveList(SubMeshes);
-            saver.Save(IndexBuffer);
+            PosSubMeshesOffset = saver.SaveOffsetPos();
+            PosBufferOffset = saver.SaveOffsetPos();
             saver.Write(FirstVertex);
         }
     }

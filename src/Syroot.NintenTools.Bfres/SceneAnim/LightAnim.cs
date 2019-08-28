@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Syroot.NintenTools.Bfres.Core;
+using System.IO;
 
 namespace Syroot.NintenTools.Bfres
 {
@@ -11,6 +12,27 @@ namespace Syroot.NintenTools.Bfres
     [DebuggerDisplay(nameof(LightAnim) + " {" + nameof(Name) + "}")]
     public class LightAnim : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LightAnim"/> class.
+        /// </summary>
+        public LightAnim()
+        {
+            Name = "";
+            DistanceAttnFuncName = "";
+            AngleAttnFuncName = "";
+            Flags = 0;
+            LightTypeIndex = 0;
+            AnimatedFields = 0;
+            FrameCount = 0;
+            BakedSize = 0;
+            DistanceAttnFuncIndex = 0;
+            AngleAttnFuncIndex = 0;
+
+            BaseData = new LightAnimData();
+            Curves = new List<AnimCurve>();
+            UserData = new ResDict<UserData>();
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const string _signature = "FLIT";
@@ -103,6 +125,22 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         public ResDict<UserData> UserData { get; set; }
 
+        public void Import(string FileName, ResFile ResFile)
+        {
+            using (ResFileLoader loader = new ResFileLoader(this, ResFile, FileName))
+            {
+                loader.ImportSection();
+            }
+        }
+
+        public void Export(string FileName, ResFile ResFile)
+        {
+            using (ResFileSaver saver = new ResFileSaver(this, ResFile, FileName))
+            {
+                saver.ExportSection();
+            }
+        }
+
         // ---- METHODS ------------------------------------------------------------------------------------------------
 
         void IResData.Load(ResFileLoader loader)
@@ -124,7 +162,11 @@ namespace Syroot.NintenTools.Bfres
             BaseData = loader.LoadCustom(() => new LightAnimData(loader, AnimatedFields));
             UserData = loader.LoadDict<UserData>();
         }
-        
+
+        internal long PosCurveArrayOffset;
+        internal long PosBaseDataOffset;
+        internal long PosUserDataOffset;
+
         void IResData.Save(ResFileSaver saver)
         {
             saver.WriteSignature(_signature);
@@ -140,9 +182,9 @@ namespace Syroot.NintenTools.Bfres
             saver.SaveString(LightTypeName);
             saver.SaveString(DistanceAttnFuncName);
             saver.SaveString(AngleAttnFuncName);
-            saver.SaveList(Curves);
-            saver.SaveCustom(BaseData, () => BaseData.Save(saver, AnimatedFields));
-            saver.SaveDict(UserData);
+            PosCurveArrayOffset = saver.SaveOffsetPos();
+            PosBaseDataOffset = saver.SaveOffsetPos();
+            PosUserDataOffset = saver.SaveOffsetPos();
         }
     }
     
@@ -162,7 +204,21 @@ namespace Syroot.NintenTools.Bfres
         /// </summary>
         Looping = 1 << 2,
 
-        EnableCurve = 1 << 8
+        EnableCurve = 1 << 8,
+
+        BaseEnable = 1 << 9,
+
+        BasePos = 1 << 10,
+
+        BaseDir = 1 << 11,
+
+        BaseDistAttn = 1 << 12,
+
+        BaseAngleAttn = 1 << 13,
+
+        BaseColor0 = 1 << 14,
+
+        BaseColor1 = 1 << 15,
     }
 
     /// <summary>

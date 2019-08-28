@@ -7,6 +7,24 @@ namespace Syroot.NintenTools.Bfres
     /// </summary>
     public class AnimCurve : IResData
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AnimCurve"/> class.
+        /// </summary>
+        public AnimCurve()
+        {
+            FrameType = AnimCurveFrameType.Single;
+            KeyType = AnimCurveKeyType.Single;
+            CurveType = AnimCurveType.Cubic;
+
+            AnimDataOffset = 0;
+            StartFrame = 0;
+            EndFrame = 0;
+            Scale = 0;
+            Frames = new float[0];
+            KeyStepBoolData = new bool[0];
+            Keys = new float[0, 4];
+        }
+
         // ---- CONSTANTS ----------------------------------------------------------------------------------------------
 
         private const ushort _flagsMaskFrameType = 0b00000000_00000011;
@@ -125,13 +143,22 @@ namespace Syroot.NintenTools.Bfres
                 Delta = loader.ReadSingle();
             }
 
-
             Frames = loader.LoadCustom(() =>
             {
                 switch (FrameType)
                 {
                     case AnimCurveFrameType.Single:
-                        return loader.ReadSingles(numKey);
+                        if (CurveType == AnimCurveType.StepInt)
+                        {
+                            float[] dec10x5Frame = new float[numKey];
+                            for (int i = 0; i < numKey; i++)
+                            {
+                                dec10x5Frame[i] = loader.ReadUInt32();
+                            }
+                            return dec10x5Frame;
+                        }
+                        else
+                            return loader.ReadSingles(numKey);
                     case AnimCurveFrameType.Decimal10x5:
                         float[] dec10x5Frames = new float[numKey];
                         for (int i = 0; i < numKey; i++)
@@ -192,7 +219,10 @@ namespace Syroot.NintenTools.Bfres
                             {
                                 for (int j = 0; j < elementsPerKey; j++)
                                 {
-                                    keys[i, j] = loader.ReadSingle();
+                                    if (CurveType == AnimCurveType.StepInt)
+                                        keys[i, j] = loader.ReadUInt32();
+                                    else
+                                        keys[i, j] = loader.ReadSingle();
                                 }
                             }
                             break;
@@ -240,7 +270,13 @@ namespace Syroot.NintenTools.Bfres
                 switch (FrameType)
                 {
                     case AnimCurveFrameType.Single:
-                        saver.Write(Frames);
+                        if (CurveType == AnimCurveType.StepInt)
+                        {
+                            foreach (float frame in Frames)
+                                saver.Write((uint)frame);
+                        }
+                        else
+                            saver.Write(Frames);
                         break;
                     case AnimCurveFrameType.Decimal10x5:
                         foreach (float frame in Frames)
@@ -263,7 +299,10 @@ namespace Syroot.NintenTools.Bfres
                     case AnimCurveKeyType.Single:
                         foreach (float key in Keys)
                         {
-                            saver.Write(key);
+                            if (CurveType == AnimCurveType.StepInt)
+                                saver.Write((uint)key);
+                            else
+                                saver.Write(key);
                         }
                         break;
                     case AnimCurveKeyType.Int16:
