@@ -108,7 +108,7 @@ namespace Syroot.NintenTools.Bfres
         [Category("Alpha Control")]
         public bool AlphaTestEnabled
         {
-            get { return AlphaControl.AlphaTestEnabled; }
+            get { return _alphaControl.AlphaTestEnabled; }
             set { _alphaControl.AlphaTestEnabled = value; }
         }
 
@@ -118,7 +118,7 @@ namespace Syroot.NintenTools.Bfres
         [Category("Alpha Control")]
         public GX2CompareFunction AlphaFunc
         {
-            get { return AlphaControl.AlphaFunc; }
+            get { return _alphaControl.AlphaFunc; }
             set { _alphaControl.AlphaFunc = value; }
         }
 
